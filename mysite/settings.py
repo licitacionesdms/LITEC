@@ -15,8 +15,8 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials
 
-cred = credentials.Certificate("C:\\Users\\VALENTINA RODRIGUEZ\\djangotutorial (27-05-2025)\\proyecto-a4977-firebase-adminsdk-fbsvc-10a1288fd4.json")
-firebase_admin.initialize_app(cred)
+cred_path = os.path.expanduser("C:\\Users\\VALENTINA RODRIGUEZ\\credentials_firebase\\proyecto-a4977-firebase-adminsdk-fbsvc-10a1288fd4.json")
+cred = credentials.Certificate(cred_path)
 
 
 # from django.urls import reverse_lazy
