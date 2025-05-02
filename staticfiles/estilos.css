@@ -1,0 +1,491 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+}
+
+.header {
+    background-color: #000248;
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.header img {
+    height: 50px;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #000248;
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar img {
+    width: 80%;
+    margin: 10px auto;
+    display: block;
+}
+
+.sidebar .spacer {
+    height: 20px;
+}
+
+.sidebar a {
+    text-decoration: none;
+    color: #adb5bd;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background-color: #575fcf;
+    color: white;
+}
+
+.sidebar a svg {
+    margin-right: 10px;
+}
+
+.sidebar .dropdown {
+    position: relative;
+    text-align: center;
+    margin-top: auto;
+}
+
+.sidebar .dropdown button {
+    background-color: #343a40;
+    color: white;
+    font-size: 16px;
+    border: none;
+    padding: 15px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar .dropdown button:hover {
+    background-color: #495057;
+}
+
+.sidebar .dropdown button svg {
+    margin-right: 10px;
+}
+
+.sidebar .dropdown-content {
+    display: none;
+    position: absolute;
+    bottom: 50px;
+    background-color: #343a40;
+    color: white;
+    min-width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.sidebar .dropdown-content a {
+    text-decoration: none;
+    color: white;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.sidebar .dropdown-content a:hover {
+    background-color: #575fcf;
+}
+
+.sidebar .dropdown-content a svg {
+    margin-right: 10px;
+}
+
+.sidebar .dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.content h1 {
+    color: #000248;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.content p {
+    color: #333;
+}
+
+.content .form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 60%;
+}
+
+.content .form-container input {
+    width: 60%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.content .form-container button {
+    padding: 10px 20px;
+    background-color: #000248;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.content .form-container button:hover {
+    background-color: #575fcf;
+}
+
+.alert {
+    width: 60%;
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 5px;
+    color: white;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #28a745;
+}
+
+.alert-danger {
+    background-color: #dc3545;
+}
+
+/* ESTILOS DE LA BARRA DE BÚSQUEDA - DISPOSITIVOS*/
+/* Aplica estilos de .submit también a .fc-button */
+
+
+.submit:hover {
+    background-color: #003366;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    width: 100%;
+    justify-content: center;
+    gap: 20px;
+
+}
+
+.search-bar input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 50%;
+    max-width: 300px;
+    margin-right: 10px;
+    gap: 20px;
+
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #000248;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    gap: 20px;
+
+}
+
+.search-bar button:hover {
+    background-color: #cc00cc;
+}
+
+.styled-upload {
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 20px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.styled-upload label {
+    color: white;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.styled-upload input[type="text"] {
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    width: 60%;
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.styled-upload button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #575fcf;
+    color: white;
+    transition: background-color 0.3s ease-in-out;
+    flex: 1;
+    /* Asegura que todos los botones sean iguales */
+    text-align: center;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.styled-upload button:hover {
+    background-color: #343a40;
+}
+
+/* ESTILOS DEL CALENDARIO */
+
+#calendar-container {
+    margin-top: 30px;
+    display: none;
+    width: 80%;
+    max-width: 900px;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+#calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#calendar-header button {
+    background-color: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #000248;
+}
+
+#calendar-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    text-align: center;
+}
+
+#calendar-grid div {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+}
+
+#calendar-grid .day-name {
+    font-weight: bold;
+    background-color: #f4f4f4;
+}
+
+#calendar-grid .alert-yellow {
+    background-color: yellow;
+}
+
+.stats {
+    margin-top: 20px;
+    text-align: right;
+    font-size: 16px;
+}
+
+.stats label {
+    font-weight: bold;
+    color: #000;
+}
+
+.download-button {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.download-button button {
+    padding: 10px 20px;
+    background-color: #d63384;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.download-button button:hover {
+    background-color: #c2185b;
+}
+
+#popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 300px;
+    background-color: white;
+    border: 2px solid #ccc;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+#popup-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #d63384;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#popup-close:hover {
+    background-color: #c2185b;
+}
+
+/* Contenedor principal del modal */
+#modal-visualizar {
+    display: none;
+    /* Oculto inicialmente */
+}
+
+/* Fondo oscuro del modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Contenido del modal (caja blanca) */
+.modal-content {
+    background-color: white;
+    width: 80%;
+    height: 80%;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+/* Estilo del botón de cerrar */
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #d63384;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Efecto hover del botón de cerrar */
+.modal-close-btn:hover {
+    background-color: #b82d6f;
+}
+
+.styled-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #575fcf;
+    color: white;
+    transition: background-color 0.3s ease-in-out;
+    text-align: center;
+    margin: 10px;
+    /* Espaciado entre los botones */
+    font-size: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.styled-button:hover {
+    background-color: #343a40;
+}
+
+
+/* Contenedor del fondo */
+/* .background-container {
+    position: relative;
+    width: 100%;
+    height: 400px; 
+    overflow: hidden; 
+} */
+
+/* Imagen de fondo con transparencia */
+/* .background {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    opacity: 0.5; 
+} */

@@ -1,0 +1,83 @@
+{% extends 'home.html' %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block title %}Registro de cambios{% endblock %}
+    <link rel="stylesheet" href="{% static 'polls/estilos.css' %}">
+
+</head>
+
+<body>
+    {% block content %}
+    <div class="content">
+        <div class="background-container">
+            <!-- <img src="{% static 'polls/fondoLH.jpg' %}" alt="Fondo Líneas Hospitalarias" class="background"> -->
+        </div>
+
+        <div class="overlay-text">
+
+            <!-- Formulario de Filtros -->
+            <form method="GET" class="search-bar">
+
+                <div>
+                    <label for="dispositivo" style="font-weight: bold; color: #000248;">Filtrar por Referencia:</label>
+                    <br>
+                    <br>
+                    <input type="text" name="dispositivo" id="dispositivo"
+                        style="border-width: 2px; border-color: #000248;" value="{{ request.GET.dispositivo }}">
+                </div>
+                <br>
+
+                <button type="submit">Filtrar</button>
+            </form>
+
+            <br>
+
+            <!-- Contenedor de la tabla con scroll interno -->
+            <div style="width: 90%; margin: 0 auto; display: flex; justify-content: center; padding: 20px;">
+                <div style="max-height: 500px; overflow-y: auto; width: 100%; border: 1px solid #000248;">
+
+                    <table style="border-collapse: collapse; width: 100%;">
+                        <thead style="position: sticky; top: 0; background-color: white; z-index: 10;">
+                            <tr>
+                                <th style="color: #000248; text-align: center; border: 1px solid #000248; padding: 8px;">Fecha y Hora</th>
+                                <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Referencia</th>
+                                <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Columna</th>
+                                <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Dato Anterior</th>
+                                <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Nuevo Dato</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cambio in trazabilidad %}
+                            <tr>
+                                <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{cambio.fecha_hora|date:"d/m/Y H:i" }}</td>
+                                <td style="color: #000;border: 1px solid #000248; padding: 8px;">{{cambio.dispositivo.referencia_lh }}</td>
+                                <td style="color: #000;border: 1px solid #000248; padding: 8px;">{{ cambio.columna }}</td>
+                                <td style="color: #000;border: 1px solid #000248; padding: 8px;">{{cambio.dato_anterior}}</td>
+                                <td style="color: #000;border: 1px solid #000248; padding: 8px;">{{ cambio.nuevo_dato }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6"
+                                    style="color: #000;text-align: center; border: 1px solid black; padding: 8px;">No se
+                                    han realizado cambios.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+    {% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,81 @@
+{% extends 'home.html' %}
+{% block title %}Registro de Usuario{% endblock %}
+
+{% block content %}
+
+<body>
+    <div class="content">
+        <div class="background-container"></div>
+        <div class="overlay-text">
+            <h1>Registro de Usuario</h1>
+            <!-- Mensajes de éxito con SweetAlert2 -->
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <!-- Mostrar mensajes -->
+            {% if messages %}
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    {% for message in messages %}
+                    {% if message.tags == "success" %}
+                    Swal.fire({
+                        title: "Usuario creado correctamente",
+                        text: "{{ message|escapejs }}",
+                        icon: "success",
+                        allowOutsideClick: false,
+                        heightAuto: false
+                    });
+                    {% elif message.tags == "error" %}
+                    {% if "Los correos electrónicos no coinciden" in message %}
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "Los correos electrónicos no coinciden.",
+                        allowOutsideClick: false,
+                        heightAuto: false
+                    });
+                    {% else %}
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "{{ message|escapejs }}",
+                        allowOutsideClick: false,
+                        heightAuto: false
+                    });
+                    {% endif %}
+                    {% endif %}
+                    {% endfor %}
+                });
+            </script>
+            {% endif %}
+    
+    
+            <!-- Contenedor principal para centrar -->
+<div >
+    <!-- Formulario de registro -->
+    <div>
+        <h2 style="color: #000248;">Crear nuevo usuario</h2>
+        <form method="post" action="{% url 'registro' %}"
+            style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            {% csrf_token %}
+            <label for="username" style="color: #000248;"><strong>Nombre de usuario</strong></label>
+            <br>
+            <input type="text" id="username" name="username" placeholder="Nombre de usuario" required style="width: 35%; padding: 8px; margin-bottom: 10px;">
+            <br>
+            <label for="email" style="color: #000248;"><strong>Correo electrónico</strong></label>
+            <br>
+            <input type="email" id="email" name="email" placeholder="Correo electrónico" required style="width: 35%; padding: 8px; margin-bottom: 10px;">
+            <br>
+            <label for="email_confirm" style="color: #000248;"><strong>Confirmar correo electrónico</strong></label>
+            <br>
+            <input type="email" id="email_confirm" name="email_confirm" placeholder="Confirmar correo electrónico" required style="width: 35%; padding: 8px; margin-bottom: 10px;">
+            <br>
+            <button type="submit" style="background-color: #000248; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; width: 10%;">Registrar</button>
+        </form>
+    </div>
+</div>
+
+        </div>
+    </div>
+</body>
+{% endblock %}
+
+</html>

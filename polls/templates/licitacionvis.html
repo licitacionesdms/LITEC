@@ -1,0 +1,184 @@
+{% extends 'homevis.html' %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block title %}Subida de Licitaciones{% endblock %}
+    <link rel="stylesheet" href="{% static 'polls/estilos.css' %}">
+</head>
+
+<body>
+    {% block content %}
+    <div class="content">
+        <div class="background-container"></div>
+
+        <div class="overlay-text">
+
+            <h1>Bienvenido al Panel de Licitaciones</h1>
+
+            {% if messages %}
+            <div id="alertContainer" class="alert alert-danger alert-dismissible fade show" role="alert" style="width: 96%;">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            
+                
+            <div class="search-bar" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                <form method="POST" enctype="multipart/form-data" action="{% url 'licitaciones' %}" id="upload-form" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    {% csrf_token %}
+                    
+                    <!-- Botón para seleccionar el archivo con el icono dentro -->
+                    <button type="button" onclick="document.getElementById('fileUpload').click() "style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; width: 200px; ">
+                        <!-- Icono SVG -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white"
+                            class="bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
+                            <path
+                                d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707z" />
+                        </svg>
+                        Seleccionar Archivo
+                    </button>
+            
+                    <!-- Input de archivo (oculto) -->
+                    <input type="file" id="fileUpload" name="file" style="display: none;" onchange="handleFileUpload(event)" accept=".xlsx, .xls" />
+            
+                    <!-- Campo de texto para mostrar el nombre del archivo -->
+                    <input type="text" id="fileName" readonly placeholder=".xlsx"
+                        style="padding: 8px; width: 250px; text-align: center; border-radius: 5px; border: 1px solid #ccc;" />
+            
+                    <!-- Botón para subir archivo (oculto hasta que se seleccione un archivo) -->
+                    <button type="submit" id="submitBtn" style="display: none; padding: 10px 15px; width: 220px; border-radius: 5px; background-color: #0044cc; color: white; border: none; cursor: pointer; font-weight: bold;">
+                        Subir Archivo
+                    </button>
+            
+                    <!-- Botón para borrar archivo -->
+                    <button type="button" onclick="clearFileName()" style="margin-top: 10px;">
+                        Borrar Archivo
+                    </button>
+                </form>
+            </div>
+                    
+            
+
+
+
+            <!-- Sección para el mapeo de columnas con scroll -->
+<div id="columnMappingSection" style="display: none; text-align: center; margin-top: 20px;">
+    <h3 style="color: #000248;">Asignación de columnas</h3>
+
+    <div
+        style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; border-radius: 5px; padding: 10px; display: inline-block;">
+        <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
+            <thead>
+                <tr style="background-color: #e0e0e0;">
+                    <th style="color: black; padding: 8px; border: 1px solid #ccc;">Columna en Archivo</th>
+                    <th style="color: black; padding: 8px; border: 1px solid #ccc;">Asignar a Base de Datos</th>
+                </tr>
+            </thead>
+            <tbody id="columnMappingTable"></tbody>
+        </table>
+    </div>
+
+    <br>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        <button type="button" class="search-bar" onclick="submitWithMapping()" style="margin-top: 10px; padding: 10px 15px; border-radius: 5px; background-color: #000248; color: white; border: none; cursor: pointer; font-weight: bold; width: 30%;">Confirmar y Subir</button>
+    </div>
+    
+</div>
+
+<script>
+    let columnMappings = {};  // Diccionario para almacenar los mapeos
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            document.getElementById("fileName").value = file.name;
+
+            // Crear FormData y enviar el archivo para obtener nombres de columnas
+            const formData = new FormData();
+            formData.append("file", file);
+
+            fetch("{% url 'get_columns' %}", {  // Nueva vista en Django para extraer columnas
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.columns) {
+                        generateColumnMapping(data.columns, data.db_columns);
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        }
+    }
+
+    function generateColumnMapping(fileColumns, dbColumns) {
+        const tableBody = document.getElementById("columnMappingTable");
+        tableBody.innerHTML = "";  // Limpiar tabla
+
+        fileColumns.forEach(col => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td style="color: black; padding: 8px; border: 1px solid #ccc;">${col}</td>
+                <td style="padding: 8px; border: 1px solid #ccc;">
+                    <select onchange="updateMapping('${col}', this.value)" style="padding: 5px; width: 100%;">
+                        <option value="">Seleccione...</option>
+                        ${dbColumns.map(dbCol => `<option value="${dbCol}" ${col === dbCol ? "selected" : ""}>${dbCol}</option>`).join("")}
+                    </select>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById("columnMappingSection").style.display = "block";
+        document.getElementById("submitBtn").style.display = "none";  // Ocultar botón normal de subida
+    }
+
+    function updateMapping(fileCol, dbCol) {
+        columnMappings[fileCol] = dbCol;
+    }
+
+    function submitWithMapping() {
+        const form = document.getElementById("upload-form");
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "column_mappings";
+        hiddenInput.value = JSON.stringify(columnMappings);
+        form.appendChild(hiddenInput);
+        form.submit();
+    }
+
+
+    function clearFileName() {
+        // Limpiar el campo de texto
+        document.getElementById("fileName").value = "";
+
+        // Resetear el input file
+        document.getElementById("fileUpload").value = "";
+
+        // Ocultar el botón de subir
+        document.getElementById("submitBtn").style.display = "none";
+
+        // Eliminar alertas si existen
+        const alertContainer = document.getElementById("alertContainer");
+        if (alertContainer) {
+            alertContainer.style.display = "none"; // Ocultar alertas
+        }
+    }
+</script>
+            
+
+        </div>
+
+        
+
+    </div>
+    {% endblock %}
+</body>
+</html>

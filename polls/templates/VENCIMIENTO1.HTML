@@ -1,0 +1,126 @@
+{% extends 'home.html' %}
+{% load static %}
+{% block title %}Búsqueda de Dispositivos{% endblock %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'polls/estilos.css' %}">
+
+<body>
+    {% block content %}
+    <div class="content">
+        <div class="background-container">
+            <!-- <img src="{% static 'polls/fondoLH.jpg' %}" alt="Fondo Líneas Hospitalarias" class="background"> -->
+        </div>
+
+        <div class="overlay-text">
+
+            <h1>Panel de Búsqueda de Dispositivos</h1>
+
+        <div class="search-bar">
+            <form method="GET" action="">
+
+                <label style="font-weight: bold; color: #000248;">Fabricante:</label>
+                <select style="height: 42.22px; border-width: 2px; border-color: #000248; border-radius: 4px;"  name="fabricante">
+                    {% for fabricante in fabricantes %}
+                        <option value="{{ fabricante }}" {% if request.GET.fabricante == fabricante %}selected{% endif %}>{{ fabricante }}</option>
+                    {% endfor %}
+                </select>
+                
+                <label style="font-weight: bold; color: #000248;">Marca:</label>
+                <select style="height: 42.22px; border-width: 2px; border-color: #000248; border-radius: 4px;" name="marca">
+                    {% for marca in marcas %}
+                        <option value="{{ marca }}" {% if request.GET.marca == marca %}selected{% endif %}>{{ marca }}</option>
+                    {% endfor %}
+                </select>
+                <label style="font-weight: bold; color: #000248;">Nombre:</label>
+                <input type="text" name="descripcion_espanol" placeholder="Nombre del dispositivo"style="width: 200px; border-width: 2px; border-color: #000248;"  value="{{ request.GET.descripcion_espanol }}">
+                <br>
+                <br>
+                <label style="font-weight: bold; color: #000248;">Referencia LH:</label>
+                <input type="text" name="referencia_lh" placeholder="Referencia LH"style="width: 200px; border-width: 2px; border-color: #000248;"  value="{{ request.GET.referencia_lh }}">
+                
+                <label style="font-weight: bold; color: #000248;">Registro Sanitario:</label>
+                <input type="text" name="registro_sanitario" placeholder="Registro Sanitario"style="width: 200px; border-width: 2px; border-color: #000248;"  value="{{ request.GET.registro_sanitario }}">
+                
+                <button type="submit">Buscar</button>
+                <button type="button" onclick="window.location.href='{{ request.path }}'" style="background-color: rgb(146, 146, 146); color: rgb(0, 0, 0);">Limpiar Filtros</button>
+            </form>
+        </div>
+
+        {% if dispositivos %}
+        <div style="width: 90%; margin: 0 auto; display: flex; justify-content: center; padding: 20px;">
+            <div style="max-height: 500px; overflow-y: auto; width: 100%; border: 1px solid #000248;">
+                <table style="border-collapse: collapse; width: 100%;">
+                    <thead style="position: sticky; top: 0; background-color: white; z-index: 10;">
+                        <tr>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Referencia</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Referencia Fabricante</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Nombre</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Descripción en Ingles</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Marca</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Nombre RS</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Registro Sanitario</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Titular RS</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Resolución</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Fecha Aprobación</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Fecha Vencimiento</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Expediente</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Radicado</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Modalidad</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Fabricante</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Dirección Fabricante</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Importador</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Acondicionador</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Material</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Clasificación de Riesgo</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Vida útil (años)</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Vida Útil (meses)</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Presentación Comercial</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Condiciones de Almacenamiento</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Tipo</th>
+                            <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Modelo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dispositivo in dispositivos %}
+                        <tr>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.referencia_lh }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.referencia_fabricante }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.descripcion_espanol }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.descripcion_ingles }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.marca }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.nombre_registro_sanitario }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.registro_sanitario }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.titular_registro_sanitario }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.no_resolucion }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.fecha_aprobacion }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.fecha_vencimiento }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.expediente }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.radicado }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.modalidad }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.fabricante }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.direccion_fabricante }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.importador }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.acondicionador }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.material_fabricacion }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.clasificacion_riesgo }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.vida_util_anos }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.vida_util_meses }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.presentacion_comercial }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.condiciones_almacenamiento }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.tipo_dispositivo }}</td>
+                            <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{ dispositivo.modelo }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+            <p>No se encontraron dispositivos.</p>
+        {% endif %}
+        </div>
+        
+    </div>
+    {% endblock %}
+</body>
+</html>

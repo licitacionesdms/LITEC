@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel de Administración{% endblock %}</title>
+    {% block head_extra %}
+    <link rel="stylesheet" href="{% static 'polls/estilos.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% endblock %}
+    <style>
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 250px;
+            width: calc(100% - 250px);
+            height: 100%;
+            background: url("{% static 'polls/fondoLH.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            filter: brightness(0.4);
+            z-index: 0;
+        }
+
+        .overlay-text {
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px 40px 40px 40px;
+            width: calc(100% - 250px); 
+            max-width: 2500px; /* antes: 1000px */
+            margin: 40px 0px 40px 0px; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .titulo-principal {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #000248;
+            margin-bottom: 30px;
+        }
+
+        .sidebar * {
+            font-family: inherit !important;
+            font-size: 1rem !important;
+        }
+
+        .content {
+            margin-left: 250px;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100%;
+            background-color: #000248; /* o el color de tu diseño */
+            z-index: 10;
+        }
+
+        .page-wrapper {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 30px 40px 40px 40px;
+      width: 100%;
+      max-width: 2500px;
+      margin: 40px 0px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-backdrop.show {
+      z-index: 1040 !important;
+  }
+
+  .modal {
+      z-index: 1055 !important;
+  }
+</style>
+
+</head>
+
+<body>
+    <!-- Sidebar persistente -->
+    <div class="sidebar">
+        <img src="{% static 'polls/lineas_hospitalarias.png' %}" alt="Logo Líneas Hospitalarias" class="logo">
+        <div class="spacer"></div>
+        <a href="{% url 'dispositivos' %}">📁 Dispositivos</a>
+        <a href="{% url 'edicion_masiva' %}">✏️ Editar Dispositivos</a>
+        <a href="{% url 'licitaciones' %}">📄 Subir Licitación</a>
+        <a href="{% url 'vencimiento' %}">🔔 Alertas de Vencimiento</a>
+        <a href="{% url 'registro' %}">👤 Gestionar Usuarios</a>
+
+        <div class="dropdown">
+            <button>⚙️ {{ username }}</button>
+            <div class="dropdown-content">
+                <a href="{% url 'logout' %}">🚪 Cerrar Sesión</a>
+                <a href="{% url 'password_change' %}">🔑 Cambiar Contraseña</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fondo institucional fijo -->
+    <div class="background-container"></div>
+
+    <!-- Contenido envoltorio -->
+    <div class="content">
+        <div class="page-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>
+

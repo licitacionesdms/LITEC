@@ -1,0 +1,164 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<style>
+    .background-container {
+        /* position: relative;
+        width: 100%;
+        height: 100%;
+        background: url("{% static 'polls/fondoLH.jpg' %}") no-repeat center center fixed;
+        overflow: hidden;
+        background-size: cover;
+        filter: brightness(0.5);
+        position: fixed; */
+    top: 0;
+    left: 250px;
+    width: 100%;
+    height: 100%;
+    background: url("{% static 'polls/fondoLH.jpg' %}") fixed; 
+    background-size: cover;
+    filter: brightness(0.4); /* Reduce brillo para mayor contraste */
+
+    }
+    
+    .background {
+        top: 0;
+        left: 250px;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+    }
+    
+    .overlay-text {
+        position: absolute;
+        /* top: 50%; */
+        align-items: center;
+        /* left: 50%; */
+        /* right: 50%; */
+        /* transform: translate(-50%, -50%); */
+        text-align: center;
+        width: 67%;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.867);
+        border-radius: 20px;
+        margin-top: 20px;
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel de Administración{% endblock %}</title>
+    {% block head_extra %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'polls/estilos.css' %}">
+</head>
+
+<body>
+    </div>
+    <div class="sidebar">
+        <img src="{% static 'polls/lineas_hospitalarias.png' %}" alt="Logo Líneas Hospitalarias" class="logo">
+        <div class="spacer"></div>
+        <a href="{% url 'dispositivos' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-fill"
+                viewBox="0 0 16 16">
+                <path
+                    d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3m-8.322.12q.322-.119.684-.12h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981z" />
+            </svg>
+            <span>Dispositivos</span>
+        </a>
+        <a href="{% url 'edicion_masiva' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-pencil-square" viewBox="0 0 16 16">
+                <path
+                    d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                <path fill-rule="evenodd"
+                    d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+            </svg>
+            <span>Editar Dispositivos</span>
+        </a>
+        <a href="{% url 'licitaciones' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
+                <path
+                    d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707z" />
+            </svg>
+            <span>Subir Licitación</span>
+        </a>
+        <a href="{% url 'vencimiento' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell-fill"
+                viewBox="0 0 16 16">
+                <path
+                    d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901" />
+            </svg>
+            <span>Alertas de Vencimiento</span>
+        </a>
+        <a href="{% url 'registro' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill"
+                viewBox="0 0 16 16">
+                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+            </svg>
+            <span>Gestionar Usuarios</span>
+        </a>
+        <div class="dropdown">
+            <button>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                    class="bi bi-person-fill-gear" viewBox="0 0 16 16">
+                    <path
+                        d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-9 8c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4m9.886-3.54c.18-.613 1.048-.613 1.229 0l.043.148a.64.64 0 0 0 .921.382l.136-.074c.561-.306 1.175.308.87.869l-.075.136a.64.64 0 0 0 .382.92l.149.045c.612.18.612 1.048 0 1.229l-.15.043a.64.64 0 0 0-.38.921l.074.136c.305.561-.309 1.175-.87.87l-.136-.075a.64.64 0 0 0-.92.382l-.045.149c-.18.612-1.048.612-1.229 0l-.043-.15a.64.64 0 0 0-.921-.38l-.136.074c-.561.305-1.175-.309-.87-.87l.075-.136a.64.64 0 0 0-.382-.92l-.148-.045c-.613-.18-.613-1.048 0-1.229l.148-.043a.64.64 0 0 0 .382-.921l-.074-.136c-.306-.561.308-1.175.869-.87l.136.075a.64.64 0 0 0 .92-.382zM14 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0" />
+                </svg>
+                <span>{{ username }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+                    <path
+                        d="M7.247 4.86l-4.796 5.481c-.566.648-.106 1.659.748 1.659h9.592c.854 0 1.314-1.011.748-1.659L8.753 4.86a1 1 0 0 0-1.506 0z" />
+                </svg>
+            </button>
+            <div class="dropdown-content">
+                <a href="{% url 'logout' %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                            d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z" />
+                        <path fill-rule="evenodd"
+                            d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z" />
+                    </svg>
+                    <span>Cerrar Sesión</span>
+                </a>
+                <a href="{% url 'password_change' %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                            d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z" />
+                        <path fill-rule="evenodd"
+                            d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z" />
+                    </svg>
+                    <span>Cambiar Contraseña</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% block content %}
+
+    <div class="content">
+        
+            <!-- <img src="{% static 'polls/fondoLH.jpg' %}" alt="Fondo Líneas Hospitalarias" class="background"> -->
+        <div class="background-container">
+            <!-- <div class="background-container"></div> -->
+        </div>
+        <div class="overlay-text" style="padding: 20px;">
+            <h1>Bienvenido al Panel de Administración</h1>
+            <!-- <p>Desde aquí puedes gestionar la información de dispositivos y licitaciones.</p> -->
+        </div>
+
+        
+            
+        </div>
+
+    </div>
+    
+    {% endblock %}
+</body>
+
+</html>
