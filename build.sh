@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Instala dependencias si usas algún archivo externo adicional (opcional)
-# pip install -r requirements.txt
+pip install -r requirements.txt
 
 # Aplica migraciones a la base de datos
 python manage.py migrate
