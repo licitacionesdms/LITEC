@@ -11,9 +11,14 @@ from firebase_admin import credentials
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-cred_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', os.path.join(BASE_DIR, 'proyecto-a4977-firebase-adminsdk-fbsvc-10a1288fd4.json'))
-if not firebase_admin._apps:
-    cred = credentials.Certificate(cred_path)
+
+import json
+
+firebase_json = os.getenv("FIREBASE_CREDENTIALS")
+
+if firebase_json and not firebase_admin._apps:
+    firebase_dict = json.loads(firebase_json)
+    cred = credentials.Certificate(firebase_dict)
     firebase_admin.initialize_app(cred)
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-&n!aeidslmypv8^rs3oda+zk&qx%r69hc_wlu(4=31-tkes43_')
