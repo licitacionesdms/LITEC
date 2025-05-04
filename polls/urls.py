@@ -1,5 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from .views import home, login_user, logout_user, homevis, get_columns, registrar_usuario, dispositivos, dispositivos_vis
 from .views import subir_licitacion_vis, editar_dispositivos, subir_licitacion, vencimiento, cambio_contrasena
 from .views import eventos_vencimiento, agregar_evento, password_reset_request, edicion_masiva, descargar_dispositivos
@@ -34,4 +36,7 @@ urlpatterns = [
 
 ]
 
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
