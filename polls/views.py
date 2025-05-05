@@ -19,6 +19,7 @@ from firebase_admin import auth
 import requests
 # import firebase_config  # Importamos la configuración de Firebase
 import firebase_admin
+from .firebase_config import auth
 from firebase_admin import credentials
 from datetime import datetime
 from django.core.serializers.json import DjangoJSONEncoder
@@ -49,14 +50,19 @@ def login_user(request):
 
         try:
             # 🔹 Autenticar usuario en Firebase
-            user = auth.get_user_by_email(email)
+            user_firebase = auth.sign_in_with_email_and_password(email, password)
+
 
             # 🔹 Buscar usuario en Django con el mismo email
-            django_user = User.objects.filter(email=email).first()
+            django_user, created = User.objects.get_or_create(email=email, defaults={
+                'username': email.split('@')[0]
+            })
             
-            if django_user is None:
-                messages.error(request, "Usuario no registrado en el sistema local.")
-                return redirect('login')
+            login(request, django_user)
+
+            #if django_user is None:
+            #    messages.error(request, "Usuario no registrado en el sistema local.")
+            #    return redirect('login')
 
             # 🔹 Iniciar sesión en Django
             login(request, django_user)
