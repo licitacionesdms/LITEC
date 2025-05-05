@@ -9,7 +9,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 
-
 class DispositivosMedicos(models.Model):
     id = models.AutoField(primary_key=True)
     referencia_fabricante = models.CharField(max_length=40, blank=True, null=True)
@@ -40,6 +39,35 @@ class DispositivosMedicos(models.Model):
     condiciones_almacenamiento = models.TextField(blank=True, null=True)
     tipo_dispositivo = models.CharField(max_length=50, blank=True, null=True)
 
+# class DispositivosMedicos(models.Model):
+#     referencia_fabricante = models.CharField(max_length=20, blank=True, null=True)
+#     referencia_lh = models.CharField(primary_key=True, max_length=20)
+#     modelo = models.CharField(max_length=50, blank=True, null=True)
+#     descripcion_espanol = models.TextField()
+#     descripcion_ingles = models.TextField(blank=True, null=True)
+#     marca = models.CharField(max_length=100)
+#     nombre_registro_sanitario = models.CharField(max_length=200)
+#     registro_sanitario = models.CharField(max_length=30)
+#     no_resolucion = models.CharField(max_length=20)
+#     fecha_aprobacion = models.TextField()
+#     fecha_vencimiento = models.TextField()
+#     alerta_vencimiento = models.CharField(max_length=10, blank=True, null=True)
+#     expediente = models.IntegerField()
+#     radicado = models.CharField(max_length=20)
+#     modalidad = models.CharField(max_length=50)
+#     titular_registro_sanitario = models.CharField(max_length=200)
+#     fabricante = models.CharField(max_length=200)
+#     direccion_fabricante = models.TextField()
+#     importador = models.CharField(max_length=100, blank=True, null=True)
+#     acondicionador = models.CharField(max_length=100, blank=True, null=True)
+#     material_fabricacion = models.TextField(blank=True, null=True)
+#     clasificacion_riesgo = models.CharField(max_length=5)
+#     vida_util_anos = models.CharField(max_length=2)
+#     vida_util_meses = models.CharField(max_length=4)
+#     presentacion_comercial = models.TextField(blank=True, null=True)
+#     condiciones_almacenamiento = models.TextField(blank=True, null=True)
+#     tipo_dispositivo = models.CharField(max_length=50)
+
     class Meta:
         managed = False  # Indica que no se administrará directamente en Django
         db_table = 'dispositivos_medicos'
@@ -57,29 +85,40 @@ class DispositivosMedicos(models.Model):
                 old_value = getattr(old_instance, field_name)
                 new_value = getattr(self, field_name)
 
-                #if old_value != new_value:
-                   # Trazabilidad.objects.create(
-                    #    dispositivo=self,
-                     #   usuario=usuario,
-                      #  columna=field_name,
-                       # dato_anterior=str(old_value),
-                        #nuevo_dato=str(new_value),
-                        #fecha_hora=now()
-                   # )
+                if old_value != new_value:
+                    Trazabilidad.objects.create(
+                        dispositivo=self,
+                        usuario=usuario,
+                        columna=field_name,
+                        dato_anterior=str(old_value),
+                        nuevo_dato=str(new_value),
+                        fecha_hora=now()
+                    )
 
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.referencia_lh} - {self.marca} ({self.modelo})"
 
-#class Trazabilidad(models.Model):
-   # dispositivo = models.ForeignKey('DispositivosMedicos', on_delete=models.CASCADE)  # Relación con dispositivo
-   # usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # Usuario que hizo el cambio
-   # columna = models.CharField(max_length=100)  # Columna modificada
-   # dato_anterior = models.TextField()  # Valor anterior
-   # nuevo_dato = models.TextField()  # Nuevo valor
-   # fecha_hora = models.DateTimeField(auto_now_add=True)  # Fecha y hora del cambio
+# class Trazabilidad(models.Model):
+#     dispositivo = models.ForeignKey('DispositivosMedicos', on_delete=models.CASCADE)  # Relación con dispositivo
+#     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # Usuario que hizo el cambio
+#     columna = models.CharField(max_length=100)  # Columna modificada
+#     dato_anterior = models.TextField()  # Valor anterior
+#     nuevo_dato = models.TextField()  # Nuevo valor
+#     fecha_hora = models.DateTimeField(auto_now_add=True)  # Fecha y hora del cambio
 
+class Trazabilidad(models.Model):
+    # usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    columna = models.CharField(max_length=100)
+    dato_anterior = models.TextField()
+    nuevo_dato = models.TextField()
+    fecha_hora = models.DateTimeField(auto_now_add=True)
+    referencias_afectadas = models.TextField()  # guardaremos esto como JSON, para luego desplegar en HTML
+
+    class Meta:
+        verbose_name = "Registro de Trazabilidad"
+        verbose_name_plural = "Trazabilidades"
 
 class Licitacion(models.Model):
     referencia_lh = models.CharField(
