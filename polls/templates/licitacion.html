@@ -11,6 +11,7 @@
 </head>
 
 <body>
+    
     {% block content %}
     <div class="content">
         <div class="background-container"></div>
@@ -57,7 +58,7 @@
                     </button>
             
                     <!-- Botón para borrar archivo -->
-                    <button type="button" onclick="clearFileName()" style="margin-top: 10px;">
+                    <button type="button"  onclick="window.location.href='{{ request.path }}'" style="margin-top: 10px;">
                         Borrar Archivo
                     </button>
                 </form>
@@ -96,25 +97,57 @@
 
     function handleFileUpload(event) {
         const file = event.target.files[0];
-        if (file) {
-            document.getElementById("fileName").value = file.name;
+        const allowedExtensions = ['xlsx', 'xls'];
 
-            // Crear FormData y enviar el archivo para obtener nombres de columnas
+        if (file) {
+            const extension = file.name.split('.').pop().toLowerCase();
+
+            if (!allowedExtensions.includes(extension)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo no válido',
+                    text: 'Solo se permiten archivos con extensión .xlsx o .xls',
+                    backdrop: false,
+                    confirmButtonColor: '#0044cc'
+                });
+                clearFileName();
+                return;
+            }
+
+            document.getElementById("fileName").value = file.name;
+            document.getElementById("submitBtn").style.display = "block";
+
             const formData = new FormData();
             formData.append("file", file);
 
-            fetch("{% url 'get_columns' %}", {  // Nueva vista en Django para extraer columnas
+            fetch("{% url 'get_columns' %}", {
                 method: "POST",
                 body: formData,
                 headers: { "X-CSRFToken": "{{ csrf_token }}" }
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.error || "Error desconocido al procesar el archivo.");
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.columns) {
                         generateColumnMapping(data.columns, data.db_columns);
                     }
                 })
-                .catch(error => console.error("Error:", error));
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al procesar',
+                        text: error.message,
+                        backdrop: false,
+                        confirmButtonColor: '#0044cc'
+                    });
+                    clearFileName();
+                });
         }
     }
 
@@ -179,6 +212,10 @@
         
 
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {% endblock %}
+
+
 </body>
 </html>
