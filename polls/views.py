@@ -725,7 +725,7 @@ def subir_licitacion_vis(request):
             # Validar que la columna referencia_lh esté presente
             if 'referencia' not in df.columns:
                 messages.error(request, "El archivo debe contener la columna 'referencia'.")
-                return render(request, "licitacion.html", {'username': request.user.username})
+                return render(request, "licitacionvis.html", {'username': request.user.username})
 
             # Obtener los nombres de los campos del modelo
             modelo_campos = {field.name for field in DispositivosMedicos._meta.fields}
