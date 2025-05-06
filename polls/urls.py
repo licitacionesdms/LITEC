@@ -3,7 +3,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import home, login_user, logout_user, homevis, get_columns, registrar_usuario, dispositivos, dispositivos_vis
-from .views import subir_licitacion_vis, editar_dispositivos, subir_licitacion, vencimiento, cambio_contrasena
+from .views import subir_licitacion_vis, editar_dispositivos, subir_licitacion, vencimiento, trazabilidad
 from .views import eventos_vencimiento, agregar_evento, password_reset_request, edicion_masiva, descargar_dispositivos
 
 
@@ -22,12 +22,11 @@ urlpatterns = [
     path("editar_dispositivos/",editar_dispositivos,name="editar_dispositivos"),
     path("edicion_masiva/",edicion_masiva,name="edicion_masiva"),
     path("licitaciones_visualizador",subir_licitacion_vis,name="licitaciones_vis"),
-    #path("trazabilidad/",trazabilidad,name="trazabilidad"),
+    path("trazabilidad/",trazabilidad,name="trazabilidad"),
     path('subir/', subir_licitacion, name='licitaciones'),
     path('get_columns/', get_columns, name='get_columns'),
     path("password_change/",auth_views.PasswordChangeView.as_view(template_name="password.html"),name="password_change",),
     path("password_change/done/",auth_views.PasswordChangeDoneView.as_view(template_name="password_change_done.html"),name="password_change_done",),
-    path('cambio_contrasena/', cambio_contrasena, name='cambio'),
     path("alertas_vencimiento/",vencimiento,name="vencimiento"),
     path('api/events/', eventos_vencimiento, name='api_events'),
     path('agregar-evento/',agregar_evento, name='agregar_evento'),
