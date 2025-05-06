@@ -695,6 +695,7 @@ def subir_licitacion(request):
 
 
     return render(request, "licitacion.html", {'username': request.user.username})
+
 @login_required
 def subir_licitacion_vis(request):
     if request.method == 'POST' and 'file' in request.FILES:
@@ -707,7 +708,7 @@ def subir_licitacion_vis(request):
         if extension not in ['.xlsx', '.xls']:
             print("Extensión inválida detectada:", extension)  # DEBUG
             messages.error(request, "Solo se permiten archivos con extensión .xlsx o .xls.")
-            return render(request, "licitacion.html", {'username': request.user.username})
+            return render(request, "licitacionvis.html", {'username': request.user.username})
 
         try:
             # Leer el archivo Excel
