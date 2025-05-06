@@ -1,83 +1,112 @@
 {% extends 'home.html' %}
 {% load static %}
+{% block title %}Registro de Cambios{% endblock %}
+{% block head_extra %}
 
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% block title %}Registro de cambios{% endblock %}
-    <link rel="stylesheet" href="{% static 'polls/estilos.css' %}">
-
-</head>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="{% static 'polls/estilos.css' %}">
+{% endblock %}
 
 <body>
-    {% block content %}
-    <div class="content">
-        <div class="background-container">
-            <!-- <img src="{% static 'polls/fondoLH.jpg' %}" alt="Fondo Líneas Hospitalarias" class="background"> -->
-        </div>
+{% block content %}
 
-        <div class="overlay-text">
+<div class="content">
+    <!-- Loader visual mientras carga la página -->
+<!-- <div id="loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(255, 255, 255, 0.85); z-index: 9999; display: flex;
+align-items: center; justify-content: center; font-size: 18px; font-weight: bold;">
+<div>
+   <div class="spinner-border text-primary" role="status"></div>
+   <p class="mt-3">Cargando trazabilidad...</p>
+</div>
+</div> -->
 
-            <!-- Formulario de Filtros -->
-            <form method="GET" class="search-bar">
+    <div class="background-container"></div>
+    <div class="overlay-text">
+        <h2 class="text-lh fw-bold mb-4">Registro de Cambios</h2>
+        <div class="tabla-wrapper">
+            <table class="table tabla-dispositivos table-bordered table-hover">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th class="text-lh">Fecha y Hora</th>
+                        <th class="text-lh">Referencias Afectadas</th>
+                        <th class="text-lh">Campo Editado</th>
+                        <th class="text-lh">Dato Anterior</th>
+                        <th class="text-lh">Nuevo Dato</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cambio in trazabilidad %}
+                    <tr>
+                        <td>{{ cambio.fecha_hora|date:"d/m/Y H:i" }}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modal-{{ forloop.counter }}">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </td>
+                        <td>{{ cambio.columna }}</td>
+                        <td>{{ cambio.dato_anterior }}</td>
+                        <td>{{ cambio.nuevo_dato }}</td>
+                    </tr>
 
-                <div>
-                    <label for="dispositivo" style="font-weight: bold; color: #000248;">Filtrar por Referencia:</label>
-                    <br>
-                    <br>
-                    <input type="text" name="dispositivo" id="dispositivo"
-                        style="border-width: 2px; border-color: #000248;" value="{{ request.GET.dispositivo }}">
-                </div>
-                <br>
+                    <!-- MODAL -->
+                    <div class="modal fade" id="modal-{{ forloop.counter }}" tabindex="-1" aria-labelledby="modalLabel-{{ forloop.counter }}" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title text-lh fw-bold" id="modalLabel-{{ forloop.counter }}">
+                                        Referencias Afectadas (Total: {{ cambio.referencias_lista|length }})
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="container">
+                                        <div class="row">
+                                            {% with cambio.referencias_lista|length as total_refs %}
+                                                {% with total_refs|add:2 as adjusted_total %}
+                                                    {% with adjusted_total|stringformat:"d" as divisor_str %}
+                                                        {% for ref in cambio.referencias_lista %}
+                                                            {% if forloop.first %}<div class="col-md-4"><ul class="list-unstyled">
+                                                            {% elif forloop.counter0|divisibleby:adjusted_total|divisibleby:3 and not forloop.first %}</ul></div><div class="col-md-4"><ul class="list-unstyled">
+                                                            {% endif %}
+                                                            <li>• {{ ref }}</li>
+                                                            {% if forloop.last %}</ul></div>{% endif %}
+                                                        {% endfor %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-                <button type="submit">Filtrar</button>
-            </form>
+            <!-- Paginación -->
+            <div class="text-center my-3">
+                {% if trazabilidad.has_previous %}
+                <a href="?page={{ trazabilidad.previous_page_number }}" class="btn btn-outline-secondary btn-sm">Anterior</a>
+                {% endif %}
 
-            <br>
+                <span class="mx-2">Página {{ trazabilidad.number }} de {{ trazabilidad.paginator.num_pages }}</span>
 
-            <!-- Contenedor de la tabla con scroll interno -->
-            <div style="width: 90%; margin: 0 auto; display: flex; justify-content: center; padding: 20px;">
-                <div style="max-height: 500px; overflow-y: auto; width: 100%; border: 1px solid #000248;">
-
-                    <table style="border-collapse: collapse; width: 100%;">
-                        <thead style="position: sticky; top: 0; background-color: white; z-index: 10;">
-                            <tr>
-                                <th style="color: #000248; text-align: center; border: 1px solid #000248; padding: 8px;">Fecha y Hora</th>
-                                <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Referencia</th>
-                                <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Columna</th>
-                                <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Dato Anterior</th>
-                                <th style="color: #000248;border: 1px solid #000248; padding: 8px;">Nuevo Dato</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for cambio in trazabilidad %}
-                            <tr>
-                                <td style="color: #000; border: 1px solid #000248; padding: 8px;">{{cambio.fecha_hora|date:"d/m/Y H:i" }}</td>
-                                <td style="color: #000;border: 1px solid #000248; padding: 8px;">{{cambio.dispositivo.referencia_lh }}</td>
-                                <td style="color: #000;border: 1px solid #000248; padding: 8px;">{{ cambio.columna }}</td>
-                                <td style="color: #000;border: 1px solid #000248; padding: 8px;">{{cambio.dato_anterior}}</td>
-                                <td style="color: #000;border: 1px solid #000248; padding: 8px;">{{ cambio.nuevo_dato }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6"
-                                    style="color: #000;text-align: center; border: 1px solid black; padding: 8px;">No se
-                                    han realizado cambios.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                {% if trazabilidad.has_next %}
+                <a href="?page={{ trazabilidad.next_page_number }}" class="btn btn-outline-secondary btn-sm">Siguiente</a>
+                {% endif %}
             </div>
-
-
         </div>
-
     </div>
-    {% endblock %}
-</body>
+</div>
+<!-- <script>
+    window.addEventListener("load", function () {
+        document.getElementById("loader").style.display = "none";
+    });
+</script> -->
 
-</html>
+{% endblock %}
+</body>
