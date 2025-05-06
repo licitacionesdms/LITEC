@@ -13,9 +13,11 @@
 
 
 <style>
-    html, body {
+    html,
+    body {
         max-width: 100%;
-        overflow-x: hidden; /* Evita el scroll horizontal */
+        overflow-x: hidden;
+        /* Evita el scroll horizontal */
     }
 
     .text-lh {
@@ -44,8 +46,10 @@
         width: 100%;
         max-width: 100%;
         overflow-x: hidden;
-        margin: 0 auto; /* Centrar contenido */
-        padding: 0 20px; /* Espaciado interno para que no toque los bordes */
+        margin: 0 auto;
+        /* Centrar contenido */
+        padding: 0 20px;
+        /* Espaciado interno para que no toque los bordes */
     }
 
     .tabla-wrapper {
@@ -89,7 +93,7 @@
         white-space: nowrap;
         overflow-y: auto;
         overflow-x: auto;
-        font-size: 12px  !important;
+        font-size: 12px !important;
     }
 
     .tabla-dispositivos th {
@@ -169,69 +173,87 @@
             });
         </script>
         {% endif %}
-    
+
         <div class="background-container"></div>
         <div class="overlay-text" style="padding: 0%;">
             <br>
-            <h1 style="font-weight: bold;font-size: 2em;">Panel de Búsqueda de Dispositivos</h1>  
-            <div class="container mb-4">        
-            <form method="GET" action="" class="row g-3 align-items-center">
-                <!-- Filtros -->      
-                <div class="col-md-3"> 
-                <label for="fabricante" class="form-label fw-bold" style="color: #000248;">Fabricante:</label>
-                <select name="fabricante" id="fabricante" class="form-select border-lh">
-                    <option value=""> - </option>
-                        {% for fabricante in fabricantes %}
-                        <option value="{{ fabricante }}" {% if fabricante == fabricante_actual %}selected{% endif %}>{{ fabricante }}</option>
-                        {% endfor %}
-                </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="marca" class="form-label fw-bold" style="color: #000248;">Marca:</label>
-                    <select name="marca" id="marca" class="form-select border-lh">
-                        <option value=""> - </option>
-                        {% for marca in marcas %}
-                        <option value="{{ marca }}" {% if marca == marca_actual %}selected{% endif %}>{{ marca }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold" style="color: #000248;">Nombre (español):</label>
-                    <input type="text" name="descripcion_espanol" class="form-control border-lh" placeholder="Nombre del dispositivo"
-                        value="{{ request.GET.descripcion_espanol }}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold" style="color: #000248;">Nombre (inglés):</label>
-                    <input type="text" name="descripcion_ingles" class="form-control border-lh" placeholder="Nombre del dispositivo (inglés)"
-                        value="{{ request.GET.descripcion_ingles }}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold" style="color: #000248;">Referencia LH:</label>
-                    <input type="text" name="referencia_lh" class="form-control border-lh" placeholder="Referencia LH" value="{{ request.GET.referencia_lh }}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold" style="color: #000248;">Referencia Fabricante:</label>
-                    <input type="text" name="referencia_fabricante" class="form-control border-lh" placeholder="Referencia Fabricante"
-                        value="{{ request.GET.referencia_fabricante }}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold" style="color: #000248;">Registro Sanitario:</label>
-                    <input type="text" name="registro_sanitario" class="form-control border-lh" placeholder="Registro Sanitario"
-                        value="{{ request.GET.registro_sanitario }}">
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="search-bar">
-                    <button type="submit">Buscar</button>
-                    <button type="button" onclick="window.location.href='{{ request.path }}'"
-                     style="background-color: rgb(89, 89, 89); color: rgb(255, 255, 255);">Limpiar</button>   
-                </div>
-                </div>
-            </form> 
-            </div> 
+            <h1 style="font-weight: bold;font-size: 2em;">Panel de Búsqueda de Dispositivos</h1>
+            <div class="container mb-4">
+                <form method="GET" action="" class="row g-3 align-items-center">
+                    <!-- Filtros -->
+                    <div class="col-md-3">
+                        <label for="fabricante" class="form-label fw-bold" style="color: #000248;">Fabricante:</label>
+                        <select name="fabricante" id="fabricante" class="form-select border-lh">
+                            <option value=""> - </option>
+                            {% for fabricante in fabricantes %}
+                            <option value="{{ fabricante }}" {% if fabricante == fabricante_actual %}selected{% endif %}>
+                                {{ fabricante }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="marca" class="form-label fw-bold" style="color: #000248;">Marca:</label>
+                        <select name="marca" id="marca" class="form-select border-lh">
+                            <option value=""> - </option>
+                            {% for marca in marcas %}
+                            <option value="{{ marca }}" {% if marca == marca_actual %}selected{% endif %}>{{ marca }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold" style="color: #000248;">Nombre (español):</label>
+                        <input type="text" name="descripcion_espanol" class="form-control border-lh"
+                            placeholder="Nombre del dispositivo" value="{{ request.GET.descripcion_espanol }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold" style="color: #000248;">Nombre (inglés):</label>
+                        <input type="text" name="descripcion_ingles" class="form-control border-lh"
+                            placeholder="Nombre del dispositivo (inglés)" value="{{ request.GET.descripcion_ingles }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold" style="color: #000248;">Referencia LH:</label>
+                        <input type="text" name="referencia_lh" class="form-control border-lh"
+                            placeholder="Referencia LH" value="{{ request.GET.referencia_lh }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold" style="color: #000248;">Referencia Fabricante:</label>
+                        <input type="text" name="referencia_fabricante" class="form-control border-lh"
+                            placeholder="Referencia Fabricante" value="{{ request.GET.referencia_fabricante }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold" style="color: #000248;">Registro Sanitario:</label>
+                        <input type="text" name="registro_sanitario" class="form-control border-lh"
+                            placeholder="Registro Sanitario" value="{{ request.GET.registro_sanitario }}">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="search-bar">
+                            <button type="submit">Buscar</button>
+                            <button type="button" onclick="window.location.href='{{ request.path }}'"
+                                style="background-color: rgb(89, 89, 89); color: rgb(255, 255, 255);">Limpiar</button>
+                        </div>
+                        <div class="dropdown d-inline">
+                            <button class="btn btn-success dropdown-toggle" style="height: 44px;" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item"
+                                        href="{% url 'descargar_dispositivos' %}?{{ request.GET.urlencode }}&formato=excel">Excel</a>
+                                </li>
+                                <li><a class="dropdown-item"
+                                        href="{% url 'descargar_dispositivos' %}?{{ request.GET.urlencode }}&formato=pdf">PDF</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </form>
+            </div>
 
-            <!-- 🔵 Paginador -->
+            <!-- Paginador -->
             {% if dispositivos %}
-            <p class="text-lh fw-bold">Se encontraron <strong>{{ dispositivos.paginator.count }}</strong> dispositivos.</p>
+            <p class="text-lh fw-bold">Se encontraron <strong>{{ dispositivos.paginator.count }}</strong> dispositivos.
+            </p>
 
             <!-- Contenedor con scroll vertical y horizontal -->
             <div class="tabla-wrapper mx-auto"
@@ -247,186 +269,190 @@
                             <th class="text-lh">Registro Sanitario</th>
                             <th class="text-lh">Acciones</th>
                         </tr>
-                        </thead>
-                        <tbody>
-                            {% for dispositivo in dispositivos %}
-                            <tr>
-                                <td>{{ dispositivo.referencia_lh }}</td>
-                                <td>{{ dispositivo.referencia_fabricante }}</td>
-                                <td>{{ dispositivo.descripcion_espanol }}</td>
-                                <td>{{ dispositivo.descripcion_ingles }}</td>
-                                <td>{{ dispositivo.marca }}</td>
-                                <td>{{ dispositivo.registro_sanitario }}</td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                        data-bs-target="#modal-{{ dispositivo.id }}">
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
-                            </table>
-                            </div>
-
-                            
-                            <div class="d-flex justify-content-center align-items-center flex-column mb-4">
-                            <div class="d-flex gap-3">
-                                {% if dispositivos.has_previous %}
-                                <a href="?page={{ dispositivos.previous_page_number }}
-                                                        {% if request.GET.fabricante %}&fabricante={{ request.GET.fabricante }}{% endif %}
-                                                        {% if request.GET.marca %}&marca={{ request.GET.marca }}{% endif %}
-                                                        {% if request.GET.descripcion_espanol %}&descripcion_espanol={{ request.GET.descripcion_espanol }}{% endif %}
-                                                        {% if request.GET.descripcion_ingles %}&descripcion_ingles={{ request.GET.descripcion_ingles }}{% endif %}
-                                                        {% if request.GET.referencia_lh %}&referencia_lh={{ request.GET.referencia_lh }}{% endif %}
-                                                        {% if request.GET.referencia_fabricante %}&referencia_fabricante={{ request.GET.referencia_fabricante }}{% endif %}
-                                                        {% if request.GET.registro_sanitario %}&registro_sanitario={{ request.GET.registro_sanitario }}{% endif %}
-                                                        " class="btn btn-primary fw-bold"
-                                    style="background-color: #000248; border-color: #000248;">
-                                    <i class="bi bi-arrow-left-circle"></i> Anterior
-                                </a>
-                                {% else %}
-                                <button class="btn btn-secondary fw-bold" disabled><i class="bi bi-arrow-left-circle"></i> Anterior</button>
-                                {% endif %}
-                            
-                                {% if dispositivos.has_next %}
-                                <a href="?page={{ dispositivos.next_page_number }}
-                                                        {% if request.GET.fabricante %}&fabricante={{ request.GET.fabricante }}{% endif %}
-                                                        {% if request.GET.marca %}&marca={{ request.GET.marca }}{% endif %}
-                                                        {% if request.GET.descripcion_espanol %}&descripcion_espanol={{ request.GET.descripcion_espanol }}{% endif %}
-                                                        {% if request.GET.descripcion_ingles %}&descripcion_ingles={{ request.GET.descripcion_ingles }}{% endif %}
-                                                        {% if request.GET.referencia_lh %}&referencia_lh={{ request.GET.referencia_lh }}{% endif %}
-                                                        {% if request.GET.referencia_fabricante %}&referencia_fabricante={{ request.GET.referencia_fabricante }}{% endif %}
-                                                        {% if request.GET.registro_sanitario %}&registro_sanitario={{ request.GET.registro_sanitario }}{% endif %}
-                                                        " class="btn btn-primary fw-bold"
-                                    style="background-color: #000248; border-color: #000248;">
-                                    Siguiente <i class="bi bi-arrow-right-circle"></i>
-                                </a>
-                                {% else %}
-                                <button class="btn btn-secondary fw-bold" disabled>Siguiente <i class="bi bi-arrow-right-circle"></i></button>
-                                {% endif %}
-                            </div>
-                            
-                            <small class="text-muted mt-2">
-                                Página {{ dispositivos.number }} de {{ dispositivos.paginator.num_pages }}
-                            </small>
-                            </div>
-                        <!-- Mostrar alerta si no se encuentran dispositivos -->
-                        {% elif request.GET %}
-                        <script>
-                            document.addEventListener("DOMContentLoaded", function () {
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: '¡Atención!',
-                                    text: 'No se encontraron dispositivos que coincidan con los filtros.',
-                                    confirmButtonColor: '#000248'
-                                });
-                            });
-                        </script>
-                        {% endif %}
-
-                        <!-- Renderizar modales fuera de la tabla -->
+                    </thead>
+                    <tbody>
                         {% for dispositivo in dispositivos %}
-                        <div class="modal fade" id="modal-{{ dispositivo.id }}" tabindex="-1" aria-labelledby="modalLabel-{{ dispositivo.id }}"
-                            aria-hidden="true">
-                            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title text-lh fw-bold" id="modalLabel-{{ dispositivo.id }}">Detalle del dispositivo
-                                        </h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        <tr>
+                            <td>{{ dispositivo.referencia_lh }}</td>
+                            <td>{{ dispositivo.referencia_fabricante }}</td>
+                            <td>{{ dispositivo.descripcion_espanol }}</td>
+                            <td>{{ dispositivo.descripcion_ingles }}</td>
+                            <td>{{ dispositivo.marca }}</td>
+                            <td>{{ dispositivo.registro_sanitario }}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#modal-{{ dispositivo.id }}">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="d-flex justify-content-center align-items-center flex-column mb-4">
+                <div class="d-flex gap-3">
+                    {% if dispositivos.has_previous %}
+                    <a href="?page={{ dispositivos.previous_page_number }}
+                                                        {% if request.GET.fabricante %}&fabricante={{ request.GET.fabricante }}{% endif %}
+                                                        {% if request.GET.marca %}&marca={{ request.GET.marca }}{% endif %}
+                                                        {% if request.GET.descripcion_espanol %}&descripcion_espanol={{ request.GET.descripcion_espanol }}{% endif %}
+                                                        {% if request.GET.descripcion_ingles %}&descripcion_ingles={{ request.GET.descripcion_ingles }}{% endif %}
+                                                        {% if request.GET.referencia_lh %}&referencia_lh={{ request.GET.referencia_lh }}{% endif %}
+                                                        {% if request.GET.referencia_fabricante %}&referencia_fabricante={{ request.GET.referencia_fabricante }}{% endif %}
+                                                        {% if request.GET.registro_sanitario %}&registro_sanitario={{ request.GET.registro_sanitario }}{% endif %}
+                                                        " class="btn btn-primary fw-bold"
+                        style="background-color: #000248; border-color: #000248;">
+                        <i class="bi bi-arrow-left-circle"></i> Anterior
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary fw-bold" disabled><i class="bi bi-arrow-left-circle"></i>
+                        Anterior</button>
+                    {% endif %}
+
+                    {% if dispositivos.has_next %}
+                    <a href="?page={{ dispositivos.next_page_number }}
+                                                        {% if request.GET.fabricante %}&fabricante={{ request.GET.fabricante }}{% endif %}
+                                                        {% if request.GET.marca %}&marca={{ request.GET.marca }}{% endif %}
+                                                        {% if request.GET.descripcion_espanol %}&descripcion_espanol={{ request.GET.descripcion_espanol }}{% endif %}
+                                                        {% if request.GET.descripcion_ingles %}&descripcion_ingles={{ request.GET.descripcion_ingles }}{% endif %}
+                                                        {% if request.GET.referencia_lh %}&referencia_lh={{ request.GET.referencia_lh }}{% endif %}
+                                                        {% if request.GET.referencia_fabricante %}&referencia_fabricante={{ request.GET.referencia_fabricante }}{% endif %}
+                                                        {% if request.GET.registro_sanitario %}&registro_sanitario={{ request.GET.registro_sanitario }}{% endif %}
+                                                        " class="btn btn-primary fw-bold"
+                        style="background-color: #000248; border-color: #000248;">
+                        Siguiente <i class="bi bi-arrow-right-circle"></i>
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary fw-bold" disabled>Siguiente <i
+                            class="bi bi-arrow-right-circle"></i></button>
+                    {% endif %}
+                </div>
+
+                <small class="text-muted mt-2">
+                    Página {{ dispositivos.number }} de {{ dispositivos.paginator.num_pages }}
+                </small>
+            </div>
+            <!-- Mostrar alerta si no se encuentran dispositivos -->
+            {% elif request.GET %}
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '¡Atención!',
+                        text: 'No se encontraron dispositivos que coincidan con los filtros.',
+                        confirmButtonColor: '#000248'
+                    });
+                });
+            </script>
+            {% endif %}
+
+            <!-- Renderizar modales fuera de la tabla -->
+            {% for dispositivo in dispositivos %}
+            <div class="modal fade" id="modal-{{ dispositivo.id }}" tabindex="-1"
+                aria-labelledby="modalLabel-{{ dispositivo.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title text-lh fw-bold" id="modalLabel-{{ dispositivo.id }}">Detalle del dispositivo
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="container">
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Referencia LH:</strong> {{ dispositivo.referencia_lh }}</div>
+                                    <div class="col-md-6"><strong>Referencia Fabricante:</strong> {{ dispositivo.referencia_fabricante }}</div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Nombre Español:</strong> {{ dispositivo.descripcion_espanol }}
                                     </div>
-                                    <div class="modal-body">
-                                        <div class="container">
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Referencia LH:</strong> {{ dispositivo.referencia_lh }}</div>
-                                                <div class="col-md-6"><strong>Referencia Fabricante:</strong> {{ dispositivo.referencia_fabricante }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Nombre Español:</strong> {{ dispositivo.descripcion_espanol }}
-                                                </div>
-                                                <div class="col-md-6"><strong>Nombre Inglés:</strong> {{ dispositivo.descripcion_ingles }}</div>
-                                                <div class="col-md-6"><strong>Modelo:</strong> {{ dispositivo.modelo }}</div>
-                                                <div class="col-md-6"><strong>Marca:</strong> {{ dispositivo.marca }}</div>
-                                            </div>
-                                            <hr>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Nombre Registro Sanitario:</strong>
-                                                    {{dispositivo.nombre_registro_sanitario }}</div>
-                                                <div class="col-md-6"><strong>Registro Sanitario:</strong> {{ dispositivo.registro_sanitario }}
-                                                </div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Titular del Registro:</strong>
-                                                    {{dispositivo.titular_registro_sanitario }}</div>
-                                                <div class="col-md-6"><strong>Radicado:</strong> {{ dispositivo.radicado }}</div>
-                                                <div class="col-md-6"><strong>Resolución:</strong> {{ dispositivo.no_resolucion }}</div>
-                                                <div class="col-md-6"><strong>Expediente:</strong> {{ dispositivo.expediente }}</div>
-                                            </div>
-                                            <hr>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Fecha Aprobación:</strong> {{ dispositivo.fecha_aprobacion }}
-                                                </div>
-                                                <div class="col-md-6"><strong>Fecha Vencimiento:</strong> {{ dispositivo.fecha_vencimiento }}
-                                                </div>
-                                            </div>
-                                            <hr>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Fabricante:</strong> {{ dispositivo.fabricante }}</div>
-                                                <div class="col-md-6"><strong>Dirección fabricante:</strong> {{ dispositivo.direccion_fabricante }}</div>
-                                                <div class="col-md-6"><strong>Importador:</strong> {{ dispositivo.importador }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Acondicionador:</strong> {{ dispositivo.acondicionador }}</div>
-                                                <div class="col-md-6"><strong>Modalidad:</strong> {{ dispositivo.modalidad }}</div>
-                                            </div>
-                                            <hr>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Clasificación de Riesgo:</strong>
-                                                    {{dispositivo.clasificacion_riesgo }}</div>
-                                                <div class="col-md-6"><strong>Vida útil:</strong> {{ dispositivo.vida_util_anos }} años / {{ dispositivo.vida_util_meses }} meses</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Material:</strong> {{ dispositivo.material_fabricacion }}</div>
-                                            </div>
-                                            <hr>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Presentación Comercial:</strong> {{ dispositivo.presentacion_comercial }}</div>
-                                                <div class="col-md-6"><strong>Condiciones de Almacenamiento:</strong> {{ dispositivo.condiciones_almacenamiento }}</div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-md-6"><strong>Tipo de dispositivo:</strong> {{ dispositivo.tipo_dispositivo }}
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="col-md-6"><strong>Nombre Inglés:</strong> {{ dispositivo.descripcion_ingles }}</div>
+                                    <div class="col-md-6"><strong>Modelo:</strong> {{ dispositivo.modelo }}</div>
+                                    <div class="col-md-6"><strong>Marca:</strong> {{ dispositivo.marca }}</div>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Nombre Registro Sanitario:</strong> {{dispositivo.nombre_registro_sanitario }}</div>
+                                    <div class="col-md-6"><strong>Registro Sanitario:</strong> {{ dispositivo.registro_sanitario }}
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Titular del Registro:</strong> {{dispositivo.titular_registro_sanitario }}</div>
+                                    <div class="col-md-6"><strong>Radicado:</strong> {{ dispositivo.radicado }}</div>
+                                    <div class="col-md-6"><strong>Resolución:</strong> {{ dispositivo.no_resolucion }}
+                                    </div>
+                                    <div class="col-md-6"><strong>Expediente:</strong> {{ dispositivo.expediente }}
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Fecha Aprobación:</strong> {{ dispositivo.fecha_aprobacion }}
+                                    </div>
+                                    <div class="col-md-6"><strong>Fecha Vencimiento:</strong> {{ dispositivo.fecha_vencimiento }}
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Fabricante:</strong> {{ dispositivo.fabricante }}
+                                    </div>
+                                    <div class="col-md-6"><strong>Dirección fabricante:</strong> {{ dispositivo.direccion_fabricante }}</div>
+                                    <div class="col-md-6"><strong>Importador:</strong> {{ dispositivo.importador }}
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Acondicionador:</strong> {{ dispositivo.acondicionador }}</div>
+                                    <div class="col-md-6"><strong>Modalidad:</strong> {{ dispositivo.modalidad }}</div>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Clasificación de Riesgo:</strong> {{dispositivo.clasificacion_riesgo }}</div>
+                                    <div class="col-md-6"><strong>Vida útil:</strong> {{ dispositivo.vida_util_anos }} años / {{ dispositivo.vida_util_meses }} meses</div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Material:</strong> {{ dispositivo.material_fabricacion }}</div>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Presentación Comercial:</strong> {{ dispositivo.presentacion_comercial }}</div>
+                                    <div class="col-md-6"><strong>Condiciones de Almacenamiento:</strong> {{ dispositivo.condiciones_almacenamiento }}</div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6"><strong>Tipo de dispositivo:</strong> {{ dispositivo.tipo_dispositivo }}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
-                        </div>
-                        </div>
-                        <script>
-                            const marcaFabricanteMap = {{ marca_fabricante_map_json| safe }};
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        const marcaFabricanteMap = {{ marca_fabricante_map_json| safe }};
 
-                            document.getElementById('fabricante').addEventListener('change', function () {
-                                const selected = this.value;
-                                const marcaSelect = document.getElementById('marca');
-                                if (marcaFabricanteMap[selected]) {
-                                    marcaSelect.value = marcaFabricanteMap[selected];
-                                }
-                            });
+        document.getElementById('fabricante').addEventListener('change', function () {
+            const selected = this.value;
+            const marcaSelect = document.getElementById('marca');
+            if (marcaFabricanteMap[selected]) {
+                marcaSelect.value = marcaFabricanteMap[selected];
+            }
+        });
 
-                            document.getElementById('marca').addEventListener('change', function () {
-                                const selected = this.value;
-                                const fabricanteSelect = document.getElementById('fabricante');
-                                const found = Object.entries(marcaFabricanteMap).find(([fab, mar]) => mar === selected);
-                                if (found) {
-                                    fabricanteSelect.value = found[0];
-                                }
-                            });
-                        </script>
-                        {% endblock %}
-                        </body>
-                        
-                        </html>
+        document.getElementById('marca').addEventListener('change', function () {
+            const selected = this.value;
+            const fabricanteSelect = document.getElementById('fabricante');
+            const found = Object.entries(marcaFabricanteMap).find(([fab, mar]) => mar === selected);
+            if (found) {
+                fabricanteSelect.value = found[0];
+            }
+        });
+    </script>
+    {% endblock %}
+</body>
+
+</html>
