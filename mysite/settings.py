@@ -22,8 +22,10 @@ if firebase_json and not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-&n!aeidslmypv8^rs3oda+zk&qx%r69hc_wlu(4=31-tkes43_')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'False'
 ALLOWED_HOSTS = ['*']
+
+LOGIN_URL = '/'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
