@@ -1,9 +1,10 @@
 import random
 import string
 import pandas as pd
+import os
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
-from .models import DispositivosMedicos, AlertaVencimiento, Licitacion, LicitacionDato 
+from .models import DispositivosMedicos, Trazabilidad, AlertaVencimiento, Licitacion, LicitacionDato 
 from .forms import AlertaVencimientoForm, DispositivoForm
 from django.contrib import messages
 from django.contrib.messages import get_messages
@@ -20,6 +21,7 @@ import requests
 # import firebase_config  # Importamos la configuración de Firebase
 import firebase_admin
 from .firebase_config import auth
+from .firebase_config import firebase
 from firebase_admin import credentials
 from datetime import datetime
 from django.core.serializers.json import DjangoJSONEncoder
@@ -38,12 +40,54 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 # Definir el diccionario de mapeo en la vista
 
 # Verifica si el usuario pertenece al grupo 'Administrador'
+
+auth = firebase.auth()
+
+ADMIN_EMAIL = "prueba.licitaciones.1@gmail.com"
+
 def is_admin(user):
-    return user.groups.filter(name='administrador').exists()
-
-
+    return user.groups.filter(name='Administrador').exists()
 
 def login_user(request):
+    # Si ya está autenticado, redirigir directamente
+    if request.user.is_authenticated:
+        return redirect('home' if is_admin(request.user) else 'homevis')
+
+    if request.method == "POST":
+        email = request.POST.get('username')
+        password = request.POST.get('password')
+        next_url = request.POST.get('next') or '/'
+
+        try:
+            # 🔐 Autenticación Firebase
+            user_firebase = auth.sign_in_with_email_and_password(email, password)
+
+            # 🔍 Buscar o crear usuario en Django
+            django_user = User.objects.filter(email=email).first()
+
+            if not django_user:
+                django_user = User.objects.create_user(
+                    username=email.split("@")[0],
+                    email=email,
+                    password=User.objects.make_random_password()
+                )
+                group_name = 'Administrador' if email.lower() == ADMIN_EMAIL else 'Visualizador'
+                group, _ = Group.objects.get_or_create(name=group_name)
+                django_user.groups.add(group)
+
+            login(request, django_user)
+
+            # ✅ Redirigir según 'next' o grupo
+            return redirect(next_url)
+
+        except Exception:
+            messages.error(request, "Usuario o contraseña incorrectos.")
+            return redirect('login')
+
+    # En GET: capturar 'next' de la URL y pasarlo al formulario
+    return render(request, 'inicio.html', {'next': request.GET.get('next', '')})
+
+#def login_user(request):
     if request.method == "POST":
         email = request.POST['username']  # Usamos email en lugar de 'username'
         password = request.POST['password']
@@ -124,7 +168,6 @@ def home(request):
 def homevis(request):
     return render(request,'homevis.html',{'username': request.user.username})
 
-
 @login_required
 def registrar_usuario(request):
     if request.method == 'POST':
@@ -139,27 +182,27 @@ def registrar_usuario(request):
         elif User.objects.filter(email=email).exists():
             messages.error(request, "El correo electrónico ya está registrado.")
         else:
-            # 🔹 Generar una contraseña aleatoria segura
             password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
 
             try:
-                # 🔹 Crear usuario en Firebase
-                firebase_user = auth.create_user(
-                    email=email,
-                    password=password
-                )
+                # 🔗 Crear usuario en Firebase (método correcto de pyrebase)
+                firebase_user = auth.create_user_with_email_and_password(email, password)
 
-                # 🔹 Crear usuario en Django
+                # 🔗 Crear usuario en Django
                 user = User.objects.create_user(username=username, email=email, password=password)
 
-                # 🔹 Asignar al grupo "Visualizador"
-                visualizador_group, created = Group.objects.get_or_create(name='Visualizador')
+                # 🔗 Asignar grupo Visualizador
+                visualizador_group, _ = Group.objects.get_or_create(name='Visualizador')
                 user.groups.add(visualizador_group)
 
-                messages.success(request, f"Usuario registrado correctamente. Tu contraseña es: {password}")
+                messages.success(request, f"Usuario registrado correctamente. La contraseña generada es: {password}")
 
             except Exception as e:
-                messages.error(request, f"Error al registrar en Firebase: {str(e)}")
+                # Obtener mensaje limpio del error
+                error_msg = str(e)
+                if hasattr(e, 'args') and len(e.args) > 0:
+                    error_msg = e.args[0]
+                messages.error(request, f"Error al registrar en Firebase: {error_msg}")
 
             return redirect('registro')
 
@@ -283,7 +326,7 @@ def dispositivos_vis(request):
     fabricantes = DispositivosMedicos.objects.values_list('fabricante', flat=True).distinct()
     marca_fabricante_map = dict(DispositivosMedicos.objects.values_list('fabricante', 'marca').distinct())
 
-    return render(request, "dispositivos.html", {
+    return render(request, "dispositivosvis.html", {
         'username': request.user.username,
         'dispositivos': dispositivos,
         'marcas': marcas,
@@ -542,12 +585,19 @@ def get_columns(request):
     return JsonResponse({"error": "No se recibió un archivo válido"}, status=400)
 
 
-
 @login_required
 def subir_licitacion(request):
     if request.method == 'POST' and 'file' in request.FILES:
         file = request.FILES['file']
         column_mappings = request.POST.get('column_mappings', '{}')  # Obtener el mapeo de columnas
+    
+        # file = request.FILES['file']
+        extension = os.path.splitext(file.name)[1].lower()
+
+        if extension not in ['.xlsx', '.xls']:
+            print("Extensión inválida detectada:", extension)  # DEBUG
+            messages.error(request, "Solo se permiten archivos con extensión .xlsx o .xls.")
+            return render(request, "licitacion.html", {'username': request.user.username})
 
         try:
             # Leer el archivo Excel
@@ -563,8 +613,8 @@ def subir_licitacion(request):
             df.rename(columns=column_mappings, inplace=True)
 
             # Validar que la columna referencia_lh esté presente
-            if 'referencia_lh' not in df.columns:
-                messages.error(request, "El archivo debe contener la columna 'referencia_lh'.")
+            if 'referencia' not in df.columns:
+                messages.error(request, "El archivo debe contener la columna 'referencia'.")
                 return render(request, "licitacion.html", {'username': request.user.username})
 
             # Obtener los nombres de los campos del modelo
@@ -576,13 +626,21 @@ def subir_licitacion(request):
             # Procesar filas del archivo Excel
             filled_data = []
             for _, row in df.iterrows():
-                referencia_lh = row.get('referencia_lh')
-                if not referencia_lh:
-                    filled_data.append(row.to_dict())  # Si no hay referencia, conservar la fila original
-                    continue
+                referencia_input = row.get('referencia')
 
-                # Buscar el dispositivo en la base de datos
-                dispositivo = DispositivosMedicos.objects.filter(referencia_lh=referencia_lh).first()
+
+                dispositivo = None
+                # if referencia_lh:
+                #     dispositivo = DispositivosMedicos.objects.filter(referencia_lh=referencia_lh).first()
+                if referencia_input:
+                    dispositivo = DispositivosMedicos.objects.filter(referencia_lh=referencia_input).first()
+
+                    if not dispositivo:
+                        dispositivo = DispositivosMedicos.objects.filter(referencia_fabricante=referencia_input).first()
+
+                    #Si tampoco, intentar con descripcion_ingles (case-insensitive match)
+                    if not dispositivo:
+                        dispositivo = DispositivosMedicos.objects.filter(descripcion_ingles__iexact=referencia_input).first()
 
                 # Crear un diccionario con la fila original
                 row_data = row.to_dict()
@@ -590,10 +648,9 @@ def subir_licitacion(request):
                 # Si el dispositivo existe, llenar los valores vacíos con los de la base de datos
                 if dispositivo:
                     for campo in columnas_validas:
-                        if not pd.notna(row_data[campo]):  # Solo llenar celdas vacías
+                        if not pd.notna(row_data.get(campo)):  # Solo llenar celdas vacías
                             row_data[campo] = getattr(dispositivo, campo, None)
 
-                # Guardar la fila actualizada
                 filled_data.append(row_data)
 
             # Convertir la lista de datos llenos a un DataFrame
@@ -604,7 +661,30 @@ def subir_licitacion(request):
             response['Content-Disposition'] = 'attachment; filename="licitaciones_actualizadas.xlsx"'
 
             with pd.ExcelWriter(response, engine='openpyxl') as writer:
-                output_df.to_excel(writer, index=False, sheet_name='Licitaciones Actualizadas')
+                output_df.to_excel(writer, index=False, sheet_name='Licitacion Actualizada')
+
+                # Mejoras al formato
+                workbook = writer.book
+                worksheet = writer.sheets['Licitacion Actualizada']
+
+                from openpyxl.styles import Font, Alignment, PatternFill
+
+                header_font = Font(bold=True)
+                header_fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
+                
+                for col_cells in worksheet.iter_cols(min_row=1, max_row=1):
+                    for cell in col_cells:
+                        cell.font = header_font
+                        cell.fill = header_fill
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                #Autoajustar ancho columnas
+                for column_cells in worksheet.columns:
+                    length = max(len(str(cell.value)) if cell.value else 0 for cell in column_cells)
+                    worksheet.column_dimensions[column_cells[0].column_letter].width = length + 2
+
+                # Congelar primera fila
+                worksheet.freeze_panes = worksheet['A2']         
 
             return response
 
@@ -615,12 +695,19 @@ def subir_licitacion(request):
 
 
     return render(request, "licitacion.html", {'username': request.user.username})
-
 @login_required
 def subir_licitacion_vis(request):
     if request.method == 'POST' and 'file' in request.FILES:
         file = request.FILES['file']
         column_mappings = request.POST.get('column_mappings', '{}')  # Obtener el mapeo de columnas
+    
+        # file = request.FILES['file']
+        extension = os.path.splitext(file.name)[1].lower()
+
+        if extension not in ['.xlsx', '.xls']:
+            print("Extensión inválida detectada:", extension)  # DEBUG
+            messages.error(request, "Solo se permiten archivos con extensión .xlsx o .xls.")
+            return render(request, "licitacion.html", {'username': request.user.username})
 
         try:
             # Leer el archivo Excel
@@ -636,9 +723,9 @@ def subir_licitacion_vis(request):
             df.rename(columns=column_mappings, inplace=True)
 
             # Validar que la columna referencia_lh esté presente
-            if 'referencia_lh' not in df.columns:
-                messages.error(request, "El archivo debe contener la columna 'referencia_lh'.")
-                return render(request, "licitacionvis.html", {'username': request.user.username})
+            if 'referencia' not in df.columns:
+                messages.error(request, "El archivo debe contener la columna 'referencia'.")
+                return render(request, "licitacion.html", {'username': request.user.username})
 
             # Obtener los nombres de los campos del modelo
             modelo_campos = {field.name for field in DispositivosMedicos._meta.fields}
@@ -649,13 +736,21 @@ def subir_licitacion_vis(request):
             # Procesar filas del archivo Excel
             filled_data = []
             for _, row in df.iterrows():
-                referencia_lh = row.get('referencia_lh')
-                if not referencia_lh:
-                    filled_data.append(row.to_dict())  # Si no hay referencia, conservar la fila original
-                    continue
+                referencia_input = row.get('referencia')
 
-                # Buscar el dispositivo en la base de datos
-                dispositivo = DispositivosMedicos.objects.filter(referencia_lh=referencia_lh).first()
+
+                dispositivo = None
+                # if referencia_lh:
+                #     dispositivo = DispositivosMedicos.objects.filter(referencia_lh=referencia_lh).first()
+                if referencia_input:
+                    dispositivo = DispositivosMedicos.objects.filter(referencia_lh=referencia_input).first()
+
+                    if not dispositivo:
+                        dispositivo = DispositivosMedicos.objects.filter(referencia_fabricante=referencia_input).first()
+
+                    #Si tampoco, intentar con descripcion_ingles (case-insensitive match)
+                    if not dispositivo:
+                        dispositivo = DispositivosMedicos.objects.filter(descripcion_ingles__iexact=referencia_input).first()
 
                 # Crear un diccionario con la fila original
                 row_data = row.to_dict()
@@ -663,10 +758,9 @@ def subir_licitacion_vis(request):
                 # Si el dispositivo existe, llenar los valores vacíos con los de la base de datos
                 if dispositivo:
                     for campo in columnas_validas:
-                        if not pd.notna(row_data[campo]):  # Solo llenar celdas vacías
+                        if not pd.notna(row_data.get(campo)):  # Solo llenar celdas vacías
                             row_data[campo] = getattr(dispositivo, campo, None)
 
-                # Guardar la fila actualizada
                 filled_data.append(row_data)
 
             # Convertir la lista de datos llenos a un DataFrame
@@ -677,7 +771,30 @@ def subir_licitacion_vis(request):
             response['Content-Disposition'] = 'attachment; filename="licitaciones_actualizadas.xlsx"'
 
             with pd.ExcelWriter(response, engine='openpyxl') as writer:
-                output_df.to_excel(writer, index=False, sheet_name='Licitaciones Actualizadas')
+                output_df.to_excel(writer, index=False, sheet_name='Licitacion Actualizada')
+
+                # Mejoras al formato
+                workbook = writer.book
+                worksheet = writer.sheets['Licitacion Actualizada']
+
+                from openpyxl.styles import Font, Alignment, PatternFill
+
+                header_font = Font(bold=True)
+                header_fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
+                
+                for col_cells in worksheet.iter_cols(min_row=1, max_row=1):
+                    for cell in col_cells:
+                        cell.font = header_font
+                        cell.fill = header_fill
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+                #Autoajustar ancho columnas
+                for column_cells in worksheet.columns:
+                    length = max(len(str(cell.value)) if cell.value else 0 for cell in column_cells)
+                    worksheet.column_dimensions[column_cells[0].column_letter].width = length + 2
+
+                # Congelar primera fila
+                worksheet.freeze_panes = worksheet['A2']         
 
             return response
 
@@ -686,30 +803,51 @@ def subir_licitacion_vis(request):
             messages.error(request, f"Error al procesar el archivo: {str(e)}")
             return render(request, "licitacionvis.html", {'username': request.user.username})
 
-
     return render(request, "licitacionvis.html", {'username': request.user.username})
 
-#@login_required
-#def trazabilidad(request):
-    #trazabilidad_list = Trazabilidad.objects.all().order_by('-fecha_hora')
 
-    #usuario_id = request.GET.get('usuario')
-    #dispositivo_id = request.GET.get('dispositivo')
-
-    #if usuario_id:
-    #    trazabilidad_list = trazabilidad_list.filter(usuario_id=usuario_id)
-    #if dispositivo_id:
-    #    trazabilidad_list = trazabilidad_list.filter(dispositivo_id=dispositivo_id)
-
-    #paginator = Paginator(trazabilidad_list, 10)  # 10 registros por página
-    #page_number = request.GET.get('page')
-    #trazabilidad = paginator.get_page(page_number)
-#return render(request, 'trazabilidad.html', {
- #       'username': request.user.username,
-  #      'trazabilidad': trazabilidad})
 @login_required
-def cambio_contrasena(request):
-    return render(request,'password.html',{'username': request.user.username})
+def trazabilidad(request):
+    trazabilidad_qs = Trazabilidad.objects.all().order_by('-fecha_hora')
+
+    referencia_filtro = request.GET.get('referencia')
+    if referencia_filtro:
+        trazabilidad_qs = trazabilidad_qs.filter(referencias_afectadas__icontains=referencia_filtro)
+
+    paginator = Paginator(trazabilidad_qs, 5)  # puedes subir a 20 o 30 según rendimiento
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Procesa solo los elementos de la página actual
+    for t in page_obj:
+        try:
+            claves = json.loads(t.referencias_afectadas)
+
+            dispositivos = DispositivosMedicos.objects.filter(
+                Q(referencia_lh__in=claves) |
+                Q(referencia_fabricante__in=claves) |
+                Q(descripcion_ingles__in=claves)
+            )
+
+            referencias = []
+            for d in dispositivos:
+                if d.referencia_lh:
+                    referencias.append(d.referencia_lh)
+                elif d.referencia_fabricante:
+                    referencias.append(d.referencia_fabricante)
+                elif d.descripcion_ingles:
+                    referencias.append(d.descripcion_ingles)
+                else:
+                    referencias.append("(sin referencia)")
+            t.referencias_lista = referencias
+        except Exception as e:
+            print(f"Error: {e}")
+            t.referencias_lista = ["(Error al leer)"]
+
+    return render(request, 'trazabilidad.html', {
+        'username': request.user.username,
+        'trazabilidad': page_obj
+    })
 
 @login_required
 def vencimiento(request):
