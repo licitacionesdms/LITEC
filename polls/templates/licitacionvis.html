@@ -8,9 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% block title %}Subida de Licitaciones{% endblock %}
     <link rel="stylesheet" href="{% static 'polls/estilos.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
+    
     {% block content %}
     <div class="content">
         <div class="background-container"></div>
@@ -30,7 +32,7 @@
             
                 
             <div class="search-bar" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-                <form method="POST" enctype="multipart/form-data" action="{% url 'licitaciones' %}" id="upload-form" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <form method="POST" enctype="multipart/form-data" action="{% url 'licitaciones_vis' %}" id="upload-form" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                     {% csrf_token %}
                     
                     <!-- Botón para seleccionar el archivo con el icono dentro -->
@@ -57,7 +59,7 @@
                     </button>
             
                     <!-- Botón para borrar archivo -->
-                    <button type="button" onclick="clearFileName()" style="margin-top: 10px;">
+                    <button type="button"  onclick="window.location.href='{{ request.path }}'" style="margin-top: 10px;">
                         Borrar Archivo
                     </button>
                 </form>
@@ -69,7 +71,7 @@
 
             <!-- Sección para el mapeo de columnas con scroll -->
 <div id="columnMappingSection" style="display: none; text-align: center; margin-top: 20px;">
-    <h3 style="color: #000248;">Asignación de columnas</h3>
+    <h3 style="color: #000248;">Asignación de columans</h3>
 
     <div
         style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; border-radius: 5px; padding: 10px; display: inline-block;">
@@ -86,7 +88,7 @@
 
     <br>
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-        <button type="button" class="search-bar" onclick="submitWithMapping()" style="margin-top: 10px; padding: 10px 15px; border-radius: 5px; background-color: #000248; color: white; border: none; cursor: pointer; font-weight: bold; width: 30%;">Confirmar y Subir</button>
+        <button type="button"class="search-bar" onclick="submitWithMapping()" style="margin-top: 10px; padding: 10px 15px; border-radius: 5px; background-color: #000248; color: white; border: none; cursor: pointer; font-weight: bold; width: 30%;">Confirmar y Subir</button>
     </div>
     
 </div>
@@ -96,25 +98,57 @@
 
     function handleFileUpload(event) {
         const file = event.target.files[0];
-        if (file) {
-            document.getElementById("fileName").value = file.name;
+        const allowedExtensions = ['xlsx', 'xls'];
 
-            // Crear FormData y enviar el archivo para obtener nombres de columnas
+        if (file) {
+            const extension = file.name.split('.').pop().toLowerCase();
+
+            if (!allowedExtensions.includes(extension)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo no válido',
+                    text: 'Solo se permiten archivos con extensión .xlsx o .xls',
+                    backdrop: false,
+                    confirmButtonColor: '#0044cc'
+                });
+                clearFileName();
+                return;
+            }
+
+            document.getElementById("fileName").value = file.name;
+            document.getElementById("submitBtn").style.display = "block";
+
             const formData = new FormData();
             formData.append("file", file);
 
-            fetch("{% url 'get_columns' %}", {  // Nueva vista en Django para extraer columnas
+            fetch("{% url 'get_columns' %}", {
                 method: "POST",
                 body: formData,
                 headers: { "X-CSRFToken": "{{ csrf_token }}" }
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.error || "Error desconocido al procesar el archivo.");
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.columns) {
                         generateColumnMapping(data.columns, data.db_columns);
                     }
                 })
-                .catch(error => console.error("Error:", error));
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al procesar',
+                        text: error.message,
+                        backdrop: false,
+                        confirmButtonColor: '#0044cc'
+                    });
+                    clearFileName();
+                });
         }
     }
 
@@ -171,6 +205,7 @@
             alertContainer.style.display = "none"; // Ocultar alertas
         }
     }
+
 </script>
             
 
@@ -179,6 +214,10 @@
         
 
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {% endblock %}
+
+
 </body>
 </html>
