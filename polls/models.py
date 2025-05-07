@@ -99,15 +99,7 @@ class DispositivosMedicos(models.Model):
 
     def __str__(self):
         return f"{self.referencia_lh} - {self.marca} ({self.modelo})"
-
-# class Trazabilidad(models.Model):
-#     dispositivo = models.ForeignKey('DispositivosMedicos', on_delete=models.CASCADE)  # Relación con dispositivo
-#     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # Usuario que hizo el cambio
-#     columna = models.CharField(max_length=100)  # Columna modificada
-#     dato_anterior = models.TextField()  # Valor anterior
-#     nuevo_dato = models.TextField()  # Nuevo valor
-#     fecha_hora = models.DateTimeField(auto_now_add=True)  # Fecha y hora del cambio
-
+    
 class Trazabilidad(models.Model):
     # usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     columna = models.CharField(max_length=100)

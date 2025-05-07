@@ -479,6 +479,7 @@ def descargar_dispositivos(request):
     return HttpResponse("Formato no soportado", status=400)
 
 
+
 @login_required
 def edicion_masiva(request):
     # Capturar filtros
@@ -533,6 +534,7 @@ def edicion_masiva(request):
         'username': request.user.username
     })
 
+
 @login_required
 def editar_dispositivos(request):
     if request.method == 'POST':
@@ -544,7 +546,7 @@ def editar_dispositivos(request):
             return redirect('edicion_masiva')
 
         dispositivos = DispositivosMedicos.objects.filter(id__in=ids_lista)
-
+        referencias_afectadas = list(dispositivos.values_list('referencia_lh', flat=True))
         cambios_realizados = 0
 
         for campo, _ in CAMPOS_EDITABLES:
@@ -555,32 +557,57 @@ def editar_dispositivos(request):
                         nuevo_valor = datetime.strptime(nuevo_valor, "%Y-%m-%d").date()
                     except ValueError:
                         continue
-                cambios = dispositivos.update(**{campo: nuevo_valor})
-                cambios_realizados += cambios
+
+                # Registrar trazabilidad antes del cambio
+                datos_anteriores = list(dispositivos.values_list(campo, flat=True))
+                dispositivos.update(**{campo: nuevo_valor})
+                cambios_realizados += len(dispositivos)
+
+                # Verificamos si todos tenían el mismo valor anterior
+                if all(valor == datos_anteriores[0] for valor in datos_anteriores):
+                    dato_anterior = str(datos_anteriores[0])
+                else:
+                    dato_anterior = "varios"
+
+                # Registrar trazabilidad
+                Trazabilidad.objects.create(
+                    columna=campo,
+                    dato_anterior=dato_anterior,
+                    nuevo_dato=str(nuevo_valor),
+                    fecha_hora=now(),
+                    referencias_afectadas=json.dumps(referencias_afectadas)
+                )
 
         if cambios_realizados == 0:
-            messages.warning(request, "Atención\nNo se realizaron cambios porque no se ingresaron valores válidos o no coincidieron registros.")
+            messages.warning(request, "No se realizaron cambios porque no se ingresaron valores válidos o no coincidieron registros.")
         else:
             messages.success(request, f"✅ Se realizaron {cambios_realizados} cambios correctamente.")
 
         return redirect('edicion_masiva')
     else:
         return redirect('edicion_masiva')
+
     
 @csrf_exempt
 def get_columns(request):
     if request.method == 'POST' and 'file' in request.FILES:
         file = request.FILES['file']
+        extension = os.path.splitext(file.name)[1].lower()
+
+        if extension not in ['.xlsx', '.xls']:
+            return JsonResponse({"error": "Solo se permiten archivos con extensión .xlsx o .xls"}, status=400)
+
         try:
             df = pd.read_excel(file)
             file_columns = df.columns.str.strip().str.lower().str.replace(' ', '_').tolist()
 
-            db_columns = [field.name for field in DispositivosMedicos._meta.fields]
+            db_columns = [field.name for field in DispositivosMedicos._meta.fields if field.name not in ('referencia_lh', 'referencia_fabricante')]
+            db_columns.insert(0, 'referencia')
 
             return JsonResponse({"columns": file_columns, "db_columns": db_columns})
 
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            return JsonResponse({"error": f"Error al leer el archivo: {str(e)}"}, status=400)
 
     return JsonResponse({"error": "No se recibió un archivo válido"}, status=400)
 
@@ -639,8 +666,9 @@ def subir_licitacion(request):
                         dispositivo = DispositivosMedicos.objects.filter(referencia_fabricante=referencia_input).first()
 
                     #Si tampoco, intentar con descripcion_ingles (case-insensitive match)
-                    if not dispositivo:
-                        dispositivo = DispositivosMedicos.objects.filter(descripcion_ingles__iexact=referencia_input).first()
+                    if not dispositivo and referencia_input is not None:
+                        referencia_str = str(referencia_input).strip()
+                        dispositivo = DispositivosMedicos.objects.filter(descripcion_ingles__iexact=referencia_str).first()
 
                 # Crear un diccionario con la fila original
                 row_data = row.to_dict()
@@ -741,8 +769,6 @@ def subir_licitacion_vis(request):
 
 
                 dispositivo = None
-                # if referencia_lh:
-                #     dispositivo = DispositivosMedicos.objects.filter(referencia_lh=referencia_lh).first()
                 if referencia_input:
                     dispositivo = DispositivosMedicos.objects.filter(referencia_lh=referencia_input).first()
 
@@ -750,8 +776,10 @@ def subir_licitacion_vis(request):
                         dispositivo = DispositivosMedicos.objects.filter(referencia_fabricante=referencia_input).first()
 
                     #Si tampoco, intentar con descripcion_ingles (case-insensitive match)
-                    if not dispositivo:
-                        dispositivo = DispositivosMedicos.objects.filter(descripcion_ingles__iexact=referencia_input).first()
+                    # Si tampoco, intentar con descripcion_ingles (case-insensitive match)
+                if not dispositivo and referencia_input is not None:
+                    referencia_str = str(referencia_input).strip()
+                    dispositivo = DispositivosMedicos.objects.filter(descripcion_ingles__iexact=referencia_str).first()
 
                 # Crear un diccionario con la fila original
                 row_data = row.to_dict()
@@ -806,16 +834,35 @@ def subir_licitacion_vis(request):
 
     return render(request, "licitacionvis.html", {'username': request.user.username})
 
-
 @login_required
 def trazabilidad(request):
     trazabilidad_qs = Trazabilidad.objects.all().order_by('-fecha_hora')
 
-    referencia_filtro = request.GET.get('referencia')
-    if referencia_filtro:
-        trazabilidad_qs = trazabilidad_qs.filter(referencias_afectadas__icontains=referencia_filtro)
+    from django.utils import timezone
+    from datetime import datetime, timedelta
 
-    paginator = Paginator(trazabilidad_qs, 5)  # puedes subir a 20 o 30 según rendimiento
+    filtro_fecha = request.GET.get('fecha', 'todos')
+    hoy_local = timezone.localtime(timezone.now()).date()
+
+    if filtro_fecha == 'hoy':
+        inicio = timezone.make_aware(datetime.combine(hoy_local, datetime.min.time()))
+        fin = timezone.make_aware(datetime.combine(hoy_local, datetime.max.time()))
+        trazabilidad_qs = trazabilidad_qs.filter(fecha_hora__range=(inicio, fin))
+
+    elif filtro_fecha == 'ayer':
+        ayer = hoy_local - timedelta(days=1)
+        inicio = timezone.make_aware(datetime.combine(ayer, datetime.min.time()))
+        fin = timezone.make_aware(datetime.combine(ayer, datetime.max.time()))
+        trazabilidad_qs = trazabilidad_qs.filter(fecha_hora__range=(inicio, fin))
+
+    elif filtro_fecha == 'semana':
+        hace_7_dias = hoy_local - timedelta(days=7)
+        inicio = timezone.make_aware(datetime.combine(hace_7_dias, datetime.min.time()))
+        fin = timezone.make_aware(datetime.combine(hoy_local, datetime.max.time()))
+        trazabilidad_qs = trazabilidad_qs.filter(fecha_hora__range=(inicio, fin))
+
+
+    paginator = Paginator(trazabilidad_qs, 5) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -832,22 +879,26 @@ def trazabilidad(request):
 
             referencias = []
             for d in dispositivos:
-                if d.referencia_lh:
-                    referencias.append(d.referencia_lh)
-                elif d.referencia_fabricante:
-                    referencias.append(d.referencia_fabricante)
-                elif d.descripcion_ingles:
-                    referencias.append(d.descripcion_ingles)
-                else:
-                    referencias.append("(sin referencia)")
+                valor_actual = getattr(d, t.columna, None)
+                if str(valor_actual) == str(t.nuevo_dato):  # Validamos que efectivamente el campo tiene el nuevo valor
+                    if d.referencia_lh:
+                        referencias.append(d.referencia_lh)
+                    elif d.referencia_fabricante:
+                        referencias.append(d.referencia_fabricante)
+                    elif d.descripcion_ingles:
+                        referencias.append(d.descripcion_ingles)
+                    else:
+                        referencias.append("(sin referencia)")
             t.referencias_lista = referencias
+
         except Exception as e:
             print(f"Error: {e}")
             t.referencias_lista = ["(Error al leer)"]
 
     return render(request, 'trazabilidad.html', {
         'username': request.user.username,
-        'trazabilidad': page_obj
+        'trazabilidad': page_obj,
+        'fecha_seleccionada': filtro_fecha
     })
 
 @login_required
