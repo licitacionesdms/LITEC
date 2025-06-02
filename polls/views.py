@@ -1057,6 +1057,8 @@ def trazabilidad(request):
                         referencias.append(d.descripcion_ingles)
                     else:
                         referencias.append("(sin referencia)")
+                    if d.fabricante:
+                        fabricantes.add(d.fabricante)
             t.referencias_lista = referencias
             t.fabricantes_afectados = list(fabricantes)
 
