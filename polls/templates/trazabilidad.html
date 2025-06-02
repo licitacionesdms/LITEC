@@ -76,7 +76,15 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title text-lh fw-bold" id="modalLabel-{{ forloop.counter }}">
-                                        Referencias Afectadas (Total: {{ cambio.referencias_lista|length }})
+                                        Referencias Afectadas de 
+                                        {% if cambio.fabricantes_afectados|length == 1 %}
+                                            {{ cambio.fabricantes_afectados.0 }}
+                                        {% elif cambio.fabricantes_afectados %}
+                                            {{ cambio.fabricantes_afectados|join:", " }}
+                                        {% else %}
+                                            (Fabricante no identificado)
+                                        {% endif %}
+                                        (Total: {{ cambio.referencias_lista|length }})
                                     </h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                                 </div>

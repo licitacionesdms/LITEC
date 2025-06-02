@@ -1044,6 +1044,8 @@ def trazabilidad(request):
             )
 
             referencias = []
+            fabricantes = set()  # Conjunto para evitar duplicados
+
             for d in dispositivos:
                 valor_actual = getattr(d, t.columna, None)
                 if valor_actual is not None and str(valor_actual).strip().lower() == str(t.nuevo_dato).strip().lower():  # Validamos que efectivamente el campo tiene el nuevo valor
@@ -1056,6 +1058,7 @@ def trazabilidad(request):
                     else:
                         referencias.append("(sin referencia)")
             t.referencias_lista = referencias
+            t.fabricantes_afectados = list(fabricantes)
 
         except Exception as e:
             print(f"Error: {e}")
