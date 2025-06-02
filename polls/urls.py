@@ -5,10 +5,7 @@ from django.conf.urls.static import static
 from .views import home, login_user, logout_user, homevis, get_columns, registrar_usuario, dispositivos, dispositivos_vis
 from .views import subir_licitacion_vis, editar_dispositivos, subir_licitacion, vencimiento, trazabilidad
 from .views import eventos_vencimiento, agregar_evento, password_reset_request, edicion_masiva, descargar_dispositivos
-
-
-    
-#from django.contrib.auth.decorators import login_required
+from .views import subir_dispositivos_mapeo, get_columns_dispositivos, agregar_dispositivo_individual, eliminar_dispositivo, descargar_formato_licitacion
 
 
 urlpatterns = [
@@ -32,6 +29,11 @@ urlpatterns = [
     path('agregar-evento/',agregar_evento, name='agregar_evento'),
     path('password_reset/', password_reset_request, name='password_reset'),
     path('descargar-dispositivos/',descargar_dispositivos, name='descargar_dispositivos'),
+    path('subir_dispositivos_mapeo/', subir_dispositivos_mapeo, name='subir_dispositivos_mapeo'),
+    path('get_columns_dispositivos/', get_columns_dispositivos, name='get_columns_dispositivos'),
+    path('agregar_dispositivo_individual/', agregar_dispositivo_individual, name='agregar_dispositivo_individual'),
+    path('dispositivos/eliminar/<int:id>/',eliminar_dispositivo, name='eliminar_dispositivo'),
+    path('descargar-formato-licitacion/', descargar_formato_licitacion, name= 'descargar_formato_licitacion')
 
 ]
 

@@ -27,12 +27,16 @@
                 {% endfor %}
             </div>
             {% endif %}
-
-            
-                
+         
             <div class="search-bar" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
                 <form method="POST" enctype="multipart/form-data" action="{% url 'licitaciones' %}" id="upload-form" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                     {% csrf_token %}
+
+                    <button type="submit">
+                        <a href="{% url 'descargar_formato_licitacion' %}" class="btn btn-success" style="color: white; text-decoration-line: none;">
+                             <i class="bi bi-download"></i> Descargar Formato Base
+                        </a>
+                   </button>
                     
                     <!-- Botón para seleccionar el archivo con el icono dentro -->
                     <button type="button" onclick="document.getElementById('fileUpload').click() "style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; width: 200px; ">
@@ -63,10 +67,6 @@
                     </button>
                 </form>
             </div>
-                    
-            
-
-
 
             <!-- Sección para el mapeo de columnas con scroll -->
 <div id="columnMappingSection" style="display: none; text-align: center; margin-top: 20px;">

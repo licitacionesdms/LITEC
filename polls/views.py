@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from .models import DispositivosMedicos, Trazabilidad, AlertaVencimiento, Licitacion, LicitacionDato 
 from .forms import AlertaVencimientoForm, DispositivoForm
+from django.http import FileResponse, HttpResponse
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.core.paginator import Paginator
@@ -18,6 +19,7 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from firebase_admin import auth
 import requests
+from django.conf import settings
 # import firebase_config  # Importamos la configuración de Firebase
 import firebase_admin
 from .firebase_config import auth
@@ -223,6 +225,12 @@ CAMPOS_EDITABLES = [
     ('acondicionador', 'Acondicionador'),
 ]
 
+def parse_fecha(valor):
+    try:
+        return datetime.strptime(valor, '%Y-%m-%d').date() if valor else None
+    except ValueError:
+        return None
+    
 @login_required
 def dispositivos(request):
     # Obtener filtros
@@ -266,6 +274,13 @@ def dispositivos(request):
     fabricantes = DispositivosMedicos.objects.values_list('fabricante', flat=True).distinct()
     marca_fabricante_map = dict(DispositivosMedicos.objects.values_list('fabricante', 'marca').distinct())
 
+    data = request.session.pop('excel_preview', None)
+    columnas = request.session.pop('excel_columnas', None)
+    
+    columnas_todas = [field.name for field in DispositivosMedicos._meta.fields]
+    columnas_ocultas = ['id', 'alerta_vencimiento']
+    columnas_visibles = [col for col in columnas_todas if col not in columnas_ocultas]
+
     return render(request, "dispositivos.html", {
         'username': request.user.username,
         'dispositivos': dispositivos,
@@ -281,6 +296,9 @@ def dispositivos(request):
         'registro_sanitario': registro_sanitario,
         'marca': marca,
         'fabricante': fabricante,
+        'data': data,
+        'columnas': columnas,
+        'campos_visibles': columnas_visibles
     })
 
 @login_required
@@ -346,6 +364,7 @@ def dispositivos_vis(request):
 @login_required
 def descargar_dispositivos(request):
     formato = request.GET.get('formato', 'excel')
+    columnas_seleccionadas = request.GET.getlist('columnas')
 
     # Filtros
     filtros = {}
@@ -366,24 +385,20 @@ def descargar_dispositivos(request):
 
     dispositivos = DispositivosMedicos.objects.filter(**filtros)
 
-    # Campos
-    columnas = [field.name for field in DispositivosMedicos._meta.fields]
-    columnas_ocultas = ['id', 'alerta_vencimiento', 'modalidad', 'direccion_fabricante', 'presentacion_comercial']
-    columnas_visibles = [col for col in columnas if col not in columnas_ocultas]
+    # Si no se seleccionaron columnas, usar por defecto un subconjunto visible
+    if not columnas_seleccionadas:
+        columnas_todas = [field.name for field in DispositivosMedicos._meta.fields]
+        columnas_ocultas = ['id', 'alerta_vencimiento', 'modalidad', 'direccion_fabricante', 'presentacion_comercial']
+        columnas_seleccionadas = [col for col in columnas_todas if col not in columnas_ocultas]
+        columnas_seleccionadas = sorted(set(columnas_seleccionadas), key=lambda x: x)
+
     datos_filtrados = [
-        tuple(getattr(obj, col) if getattr(obj, col) is not None else '' for col in columnas_visibles)
+        tuple(getattr(obj, col) if getattr(obj, col) is not None else '' for col in columnas_seleccionadas)
         for obj in dispositivos
     ]
 
     if formato == 'excel':
-        # Excluir solo la columna 'id'
-        columnas_excel = [field.name for field in DispositivosMedicos._meta.fields if field.name != 'id']
-        datos_excel = [
-            tuple(getattr(obj, col) if getattr(obj, col) is not None else '' for col in columnas_excel)
-            for obj in dispositivos
-        ]
-
-        df = pd.DataFrame(datos_excel, columns=columnas_excel)
+        df = pd.DataFrame(datos_filtrados, columns=columnas_seleccionadas)
         output = BytesIO()
 
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -393,17 +408,17 @@ def descargar_dispositivos(request):
             workbook = writer.book
             worksheet = writer.sheets[sheet_name]
 
-            # Estilos
             wrap_format = workbook.add_format({'text_wrap': True, 'valign': 'top', 'font_size': 10})
-            header_format = workbook.add_format({'bold': True, 'text_wrap': True, 'valign': 'top', 'font_size': 10, 'bg_color': '#000248', 'font_color': 'white'})
+            header_format = workbook.add_format({
+                'bold': True, 'text_wrap': True, 'valign': 'top',
+                'font_size': 10, 'bg_color': '#000248', 'font_color': 'white'
+            })
 
-            # Ajustar columnas y aplicar estilo al encabezado
             for i, column in enumerate(df.columns):
                 max_width = max(df[column].astype(str).map(len).max(), len(column))
                 worksheet.set_column(i, i, min(max_width + 2, 35), wrap_format)
                 worksheet.write(4, i, column.replace("_", " ").title(), header_format)
 
-            # Título y fecha
             worksheet.merge_range('A1:D1', 'Reporte de Dispositivos Filtrados', workbook.add_format({
                 'bold': True, 'font_size': 16, 'align': 'left', 'valign': 'vcenter'
             }))
@@ -434,17 +449,14 @@ def descargar_dispositivos(request):
         title = Paragraph("Reporte de Dispositivos Filtrados", styles['Title'])
         fecha_actual = datetime.now().strftime("%d/%m/%Y %H:%M")
         fecha = Paragraph(f"Fecha de generación: {fecha_actual}", styles['Normal'])
-        elements.append(title)
-        elements.append(fecha)
-        elements.append(Spacer(1, 12))
+        elements.extend([title, fecha, Spacer(1, 12)])
 
         # Tabla
         cell_style = ParagraphStyle(name='cell_style', fontSize=6, leading=6, alignment=1)  # Centered
         header_row = [
         Paragraph(f'<b><font color="white">{col.replace("_", " ").title()}</font></b>', cell_style)
-        for col in columnas_visibles
+        for col in columnas_seleccionadas
 ]   
-
 
         data_rows = [
             [Paragraph(str(cell), cell_style) for cell in fila]
@@ -453,8 +465,8 @@ def descargar_dispositivos(request):
         data = [header_row] + data_rows
 
         ancho_total = 900
-        col_width = ancho_total / len(columnas_visibles)
-        col_widths = [col_width] * len(columnas_visibles)
+        col_width = ancho_total / len(columnas_seleccionadas)
+        col_widths = [col_width] * len(columnas_seleccionadas)
 
         table = Table(data, repeatRows=1, colWidths=col_widths)
         style = TableStyle([
@@ -478,7 +490,157 @@ def descargar_dispositivos(request):
 
     return HttpResponse("Formato no soportado", status=400)
 
+@csrf_exempt
+def get_columns_dispositivos(request):
+    if request.method == 'POST' and 'file' in request.FILES:
+        file = request.FILES['file']
+        extension = os.path.splitext(file.name)[1].lower()
 
+        if extension not in ['.xlsx', '.xls']:
+            return JsonResponse({"error": "Solo se permiten archivos con extensión .xlsx o .xls"}, status=400)
+
+        try:
+            df = pd.read_excel(file)
+            df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
+
+            # Eliminar filas vacías y contar las válidas
+            df = df.dropna(how='all')
+            row_count = len(df)
+
+            file_columns = df.columns.tolist()
+            db_columns = [field.name for field in DispositivosMedicos._meta.fields if field.name != 'id']
+
+            return JsonResponse({
+                "columns": file_columns,
+                "db_columns": db_columns,
+                "row_count": row_count
+            })
+
+        except Exception as e:
+            return JsonResponse({"error": f"Error al leer el archivo: {str(e)}"}, status=400)
+
+    return JsonResponse({"error": "No se recibió un archivo válido"}, status=400)
+
+
+@login_required
+def subir_dispositivos_mapeo(request):
+    if request.method == 'POST' and 'file' in request.FILES:
+        file = request.FILES['file']
+        column_mappings = request.POST.get('column_mappings', '{}')
+        extension = os.path.splitext(file.name)[1].lower()
+
+        if extension not in ['.xlsx', '.xls']:
+            messages.error(request, "Solo se permiten archivos con extensión .xlsx o .xls.")
+            return redirect('dispositivos')
+
+        try:
+            df = pd.read_excel(file)
+            df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
+            column_mappings = json.loads(column_mappings)
+            df.rename(columns=column_mappings, inplace=True)
+
+            modelo_campos = {field.name for field in DispositivosMedicos._meta.fields if field.name != 'id'}
+            columnas_validas = [col for col in df.columns if col in modelo_campos]
+
+            df = df.dropna(how='all')  # Eliminar filas completamente vacías
+            df.drop_duplicates(subset=['referencia_lh', 'referencia_fabricante', 'descripcion_espanol'], inplace=True)  # Eliminar duplicados exactos
+
+            nuevos_dispositivos = []
+            for _, fila in df.iterrows():
+                datos = {campo: fila[campo] for campo in columnas_validas if campo in fila and pd.notna(fila[campo])}
+
+                for fecha_campo in ['fecha_aprobacion', 'fecha_vencimiento']:
+                    if fecha_campo in datos:
+                        try:
+                            datos[fecha_campo] = pd.to_datetime(datos[fecha_campo], dayfirst=True, errors='coerce')
+                        except:
+                            datos[fecha_campo] = None
+
+                nuevos_dispositivos.append(DispositivosMedicos(**datos))
+
+            DispositivosMedicos.objects.bulk_create(nuevos_dispositivos)
+            messages.success(request, f"Se importaron {len(nuevos_dispositivos)} dispositivos correctamente.")
+
+        except Exception as e:
+            messages.error(request, f"Error al procesar el archivo: {str(e)}")
+
+    return redirect('dispositivos')
+
+
+@login_required
+def agregar_dispositivo_individual(request):
+    if request.method == 'POST':
+        fabricante = request.POST.get('fabricante', '').strip()
+        marca = request.POST.get('marca', '').strip()
+        descripcion_espanol = request.POST.get('descripcion_espanol', '').strip()
+        descripcion_ingles = request.POST.get('descripcion_ingles', '').strip()
+        referencia_lh = request.POST.get('referencia_lh', '').strip()
+        referencia_fabricante = request.POST.get('referencia_fabricante', '').strip()
+        registro_sanitario = request.POST.get('registro_sanitario', '').strip()
+        nombre_registro_sanitario = request.POST.get('nombre_registro_sanitario', '').strip()
+        titular_registro_sanitario = request.POST.get('titular_registro_sanitario', '').strip()
+        radicado = request.POST.get('radicado', '').strip()
+        no_resolucion = request.POST.get('no_resolucion', '').strip()
+        expediente = request.POST.get('expediente', '').strip()
+        modelo = request.POST.get('modelo', '').strip()
+        direccion_fabricante = request.POST.get('direccion_fabricante', '').strip()
+        importador = request.POST.get('importador', '').strip()
+        acondicionador = request.POST.get('acondicionador', '').strip()
+        modalidad = request.POST.get('modalidad', '').strip()
+        clasificacion_riesgo = request.POST.get('clasificacion_riesgo', '').strip()
+        vida_util_anos = request.POST.get('vida_util_anos', '').strip()
+        vida_util_meses = request.POST.get('vida_util_meses', '').strip()
+        material_fabricacion = request.POST.get('material_fabricacion', '').strip()
+        presentacion_comercial = request.POST.get('presentacion_comercial', '').strip()
+        condiciones_almacenamiento = request.POST.get('condiciones_almacenamiento', '').strip()
+        tipo_dispositivo = request.POST.get('tipo_dispositivo', '').strip()
+        fecha_aprobacion = request.POST.get('fecha_aprobacion', '').strip()
+        fecha_vencimiento = request.POST.get('fecha_vencimiento', '').strip()
+
+
+        if not fabricante or not marca:
+            messages.error(request, "Los campos 'Fabricante' y 'Marca' son obligatorios.")
+            return redirect('dispositivos')
+
+        nuevo_dispositivo = DispositivosMedicos.objects.create(
+            fabricante=fabricante,
+            marca=marca,
+            descripcion_espanol=descripcion_espanol,
+            descripcion_ingles=descripcion_ingles,
+            referencia_lh=referencia_lh,
+            referencia_fabricante=referencia_fabricante,
+            registro_sanitario=registro_sanitario,
+            nombre_registro_sanitario=nombre_registro_sanitario,
+            titular_registro_sanitario=titular_registro_sanitario,
+            radicado=radicado,
+            no_resolucion=no_resolucion,
+            expediente=expediente,
+            modelo=modelo,
+            direccion_fabricante=direccion_fabricante,
+            importador=importador,
+            acondicionador=acondicionador,
+            modalidad=modalidad,
+            clasificacion_riesgo=clasificacion_riesgo,
+            vida_util_anos=vida_util_anos if vida_util_anos else None,
+            vida_util_meses=vida_util_meses if vida_util_meses else None,
+            material_fabricacion=material_fabricacion,
+            presentacion_comercial=presentacion_comercial,
+            condiciones_almacenamiento=condiciones_almacenamiento,
+            tipo_dispositivo=tipo_dispositivo,
+            fecha_aprobacion=parse_fecha(fecha_aprobacion),
+            fecha_vencimiento=parse_fecha(fecha_vencimiento)
+        )
+
+        messages.success(request, f"✅ Se agregó correctamente la nueva referencia: {referencia_lh}")
+        return redirect('dispositivos')
+
+    return redirect('dispositivos')
+
+def eliminar_dispositivo(request, id):
+    dispositivo = get_object_or_404(DispositivosMedicos, id=id)
+    dispositivo.delete()
+    messages.success(request, 'La referencia fue eliminada exitosamente.')
+    return redirect('dispositivos')  # Asegúrate que esta sea tu URL correcta
 
 @login_required
 def edicion_masiva(request):
@@ -611,6 +773,10 @@ def get_columns(request):
 
     return JsonResponse({"error": "No se recibió un archivo válido"}, status=400)
 
+
+def descargar_formato_licitacion(request):
+    ruta_archivo = os.path.join(settings.BASE_DIR, 'polls','static', 'FORMATO_LICITACIONES.xlsx')
+    return FileResponse(open(ruta_archivo, 'rb'), as_attachment=True, filename='FORMATO_LICITACIONES.xlsx')
 
 @login_required
 def subir_licitacion(request):
@@ -928,7 +1094,7 @@ def eventos_vencimiento(request):
             # Asignación de color
             if fecha_vencimiento < hoy:
                 color = "red"
-            elif delta <= 90:
+            elif delta <= 180:
                 color = "orange"
             else:
                 color = "green"
