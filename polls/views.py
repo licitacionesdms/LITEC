@@ -1046,7 +1046,7 @@ def trazabilidad(request):
             referencias = []
             for d in dispositivos:
                 valor_actual = getattr(d, t.columna, None)
-                if str(valor_actual) == str(t.nuevo_dato):  # Validamos que efectivamente el campo tiene el nuevo valor
+                if valor_actual is not None and str(valor_actual).strip().lower() == str(t.nuevo_dato).strip().lower():  # Validamos que efectivamente el campo tiene el nuevo valor
                     if d.referencia_lh:
                         referencias.append(d.referencia_lh)
                     elif d.referencia_fabricante:
